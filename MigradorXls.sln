@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MigradorXls", "MigradorXls\MigradorXls.csproj", "{F35B75FB-DEAD-4C41-9A46-EE1A9C55C52C}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup BackRest 2.1", "Setup BackRest 2.1\Setup BackRest 2.1.vdproj", "{89589B58-B68D-446C-86DC-EA3093A68BC2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F35B75FB-DEAD-4C41-9A46-EE1A9C55C52C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F35B75FB-DEAD-4C41-9A46-EE1A9C55C52C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F35B75FB-DEAD-4C41-9A46-EE1A9C55C52C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F35B75FB-DEAD-4C41-9A46-EE1A9C55C52C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89589B58-B68D-446C-86DC-EA3093A68BC2}.Debug|Any CPU.ActiveCfg = Debug
+		{89589B58-B68D-446C-86DC-EA3093A68BC2}.Release|Any CPU.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
