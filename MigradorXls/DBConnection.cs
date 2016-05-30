@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Npgsql;
+using LiteDB;
+//using SQLite;
 
 namespace MigradorXls
 {
@@ -16,6 +18,7 @@ namespace MigradorXls
         
         public DBConnection()
         {
+            
             InitializeComponent();
             textBox1.Text = Globals.Host;
             textBox2.Text = Globals.DB;
