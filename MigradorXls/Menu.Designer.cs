@@ -39,6 +39,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -52,7 +53,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(91, 290);
+            this.label2.Location = new System.Drawing.Point(91, 301);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(27, 13);
             this.label2.TabIndex = 8;
@@ -62,7 +63,7 @@
             // 
             this.panel1.BackgroundImage = global::MigradorXls.Properties.Resources.innova_back_rest_logo;
             this.panel1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.panel1.Location = new System.Drawing.Point(31, 12);
+            this.panel1.Location = new System.Drawing.Point(31, 30);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(171, 79);
             this.panel1.TabIndex = 9;
@@ -73,7 +74,7 @@
             this.button4.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.button4.FlatAppearance.BorderSize = 0;
             this.button4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button4.Location = new System.Drawing.Point(31, 272);
+            this.button4.Location = new System.Drawing.Point(31, 283);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(54, 50);
             this.button4.TabIndex = 7;
@@ -89,7 +90,7 @@
             this.button3.Enabled = false;
             this.button3.FlatAppearance.BorderSize = 0;
             this.button3.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button3.Location = new System.Drawing.Point(31, 216);
+            this.button3.Location = new System.Drawing.Point(31, 227);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(54, 50);
             this.button3.TabIndex = 2;
@@ -99,10 +100,9 @@
             // 
             this.button2.BackgroundImage = global::MigradorXls.Properties.Resources.migrar_bases_de_datos;
             this.button2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.button2.Enabled = false;
             this.button2.FlatAppearance.BorderSize = 0;
             this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button2.Location = new System.Drawing.Point(31, 160);
+            this.button2.Location = new System.Drawing.Point(31, 171);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(54, 50);
             this.button2.TabIndex = 1;
@@ -115,7 +115,7 @@
             this.button1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.button1.FlatAppearance.BorderSize = 0;
             this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.Location = new System.Drawing.Point(31, 104);
+            this.button1.Location = new System.Drawing.Point(31, 115);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(54, 50);
             this.button1.TabIndex = 0;
@@ -125,7 +125,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(91, 235);
+            this.label4.Location = new System.Drawing.Point(91, 246);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(50, 13);
             this.label4.TabIndex = 11;
@@ -134,7 +134,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(91, 179);
+            this.label5.Location = new System.Drawing.Point(91, 190);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(89, 13);
             this.label5.TabIndex = 12;
@@ -143,11 +143,20 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(91, 123);
+            this.label6.Location = new System.Drawing.Point(91, 134);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(88, 13);
             this.label6.TabIndex = 13;
             this.label6.Text = "Migracion por Xls";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(131, 9);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(48, 13);
+            this.label3.TabIndex = 14;
+            this.label3.Text = "Version: ";
             // 
             // Menu
             // 
@@ -155,6 +164,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlLight;
             this.ClientSize = new System.Drawing.Size(230, 343);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
@@ -185,5 +195,6 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label3;
     }
 }

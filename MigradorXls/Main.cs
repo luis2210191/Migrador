@@ -32,13 +32,9 @@ namespace MigradorXls
         string reader = "0";
         int status = 0;
         DialogResult result;
-
         private DataSet DtSet = new DataSet();
         System.Data.OleDb.OleDbConnection Myconnetion;
         System.Data.OleDb.OleDbDataAdapter MyCommand;
-        //string de conexion con las credenciales de postgreSQL
-        //string connectionString = @"Host=192.168.1.254;port=5432;Database=ROYALSDB;User ID=postgres;Password=TACA8tilo";
-        //string connectionString = @"Host=localhost;port=5432;Database=MigrarPrueba;User ID=postgres;Password=postgres";
         string connectionString;
         List<Tipos> listaTipos = new List<Tipos>();
         List<Errores> listaErr = new List<Errores>();
@@ -48,57 +44,7 @@ namespace MigradorXls
         {
 
             InitializeComponent();
-            //Llamada del formulario de inicio de sesion
-            //Creacion de lista que contiene los tipos de personas
-
-            listaTipos.Add(new Tipos("PNR", "02.1"));
-            listaTipos.Add(new Tipos("PNNR", "02.2"));
-            listaTipos.Add(new Tipos("PJD", "02.3"));
-            listaTipos.Add(new Tipos("PJND", "02.4"));
-            listaTipos.Add(new Tipos("E", "02.5"));
-            listaTipos.Add(new Tipos("Ord", "03.1"));
-            listaTipos.Add(new Tipos("Esp", "03.2"));
-            listaTipos.Add(new Tipos("For", "03.3"));
-            listaTipos.Add(new Tipos("Exe", "03.4"));
-            listaTipos.Add(new Tipos("Fin", "03.5"));
-            listaTipos.Add(new Tipos("M", "05.1"));
-            listaTipos.Add(new Tipos("F", "05.2"));
-            listaTipos.Add(new Tipos("NA", "05.3"));
-            listaTipos.Add(new Tipos("NORMAL", "11.1"));
-            listaTipos.Add(new Tipos("SERIAL", "11.4"));
-            listaTipos.Add(new Tipos("LOTE", "11.2"));
-            listaTipos.Add(new Tipos("PROPIEDADES", "11.3"));
-            listaTipos.Add(new Tipos("Fcxc", "20"));
-            listaTipos.Add(new Tipos("Fcxp", "5"));
-            listaTipos.Add(new Tipos("NC", "32"));
-            listaTipos.Add(new Tipos("ND", "31"));
-
-            var tipoPersona = new[] {
-                new { Text = "NATURAL RESIDENTE", Value = "02.1" },
-                new { Text = "NATURAL NO RESIDENTE", Value = "02.2" },
-                new { Text = "JURIDICA DOMICILIADA", Value = "02.3" },
-                new { Text = "JURIDICA NO DIMICILIADA", Value = "02.4" },
-                new { Text = "EXTRANJERO", Value = "02.5" }
-            };
-            //Asignacion de data source y propiedades de visibilidad de campo tipo_pers
-            //Creacion de lista que contiene los tipos de contribuyente
-            var tipoContribuyente = new[] {
-                new { Text = "ORDINARIO", Value = "03.1" },
-                new { Text = "FORMAL", Value = "03.2" },
-                new { Text = "ESPECIAL", Value = "03.3" },
-                new { Text = "CONSUMIDOR FINAL", Value = "03.4" },
-                new { Text = "EXENTO", Value = "03.5" }
-            };
-                       
-            listaPayRoll.Add(new payroll("Profesiones", 1));
-            listaPayRoll.Add(new payroll("Cargos", 2));
-
-            using (var db = new LiteDatabase("Colleccion.db"))
-            {
-                var col = db.GetCollection<Tipos>("Tipos");
-                col.InsertBulk(listaTipos);
-            }
-
+           
             //Asignacion de data source y propiedades de visibilidad de campo tipo_cont
             sql = @"SELECT org_hijo from admin.cfg_org";
             //Abriendo la coneccion con npgsql
@@ -107,16 +53,12 @@ namespace MigradorXls
             NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn);
             conn.Open();
             Globals.org = dbcmd.ExecuteScalar().ToString();
-            conn.Close();
-            using (var db = new LiteDatabase("Colleccion.db"))
-            {
-                var col = db.GetCollection<admin>("Admin");
-                var Z = col.Find(Query.All());
-                comboBox1.DataSource = Z.ToList();
-                comboBox1.DisplayMember = "desc";
-                comboBox1.ValueMember = "id";
-            }
-            
+            conn.Close();           
+            var db = DBConn.Instance;
+            var c = db.Collection<admin>();
+            comboBox1.DataSource = c.Find(Query.All()).ToList();
+            comboBox1.DisplayMember = "desc";
+            comboBox1.ValueMember = "id";            
         }
         private void button1_Click(object sender, EventArgs e)
         {
@@ -166,21 +108,13 @@ namespace MigradorXls
             Cursor.Current = Cursors.WaitCursor;
             codInteno = 1;
             status = 0;
-            listaErr.Add(new Errores("Indeterminacion en division por zero", "22012"));
-            listaErr.Add(new Errores("Formato incorrecto en la fecha", "22007"));
-            listaErr.Add(new Errores("No se permiten valores nulos", "22004"));
-            listaErr.Add(new Errores("Valor numerico fuera del rango establecido", "22003"));
-            listaErr.Add(new Errores("Uno de los campos Introducidos posee un valor nulo", "23502"));
-            listaErr.Add(new Errores("Violacion de llave foranea", "23503"));
-            listaErr.Add(new Errores("Violacion de llave unica", "23505"));
-            listaErr.Add(new Errores("Llave foranea invalida", "42830"));
-
+            NpgsqlConnection conn = new NpgsqlConnection(connectionString);
+            conn.Open();
+            NpgsqlTransaction t = conn.BeginTransaction();
             try
             {
 
-                NpgsqlConnection conn = new NpgsqlConnection(connectionString);
-                conn.Open();
-                NpgsqlTransaction t = conn.BeginTransaction();
+                
                 //Recorriendo el Datagridview e insertando cada valor
                 count = 0;
                 if (comboBox1.SelectedIndex == 5)//Articulos
@@ -199,118 +133,147 @@ namespace MigradorXls
                     {
                         try
                         {
-
-                            switch (comboBox1.SelectedIndex)
+                            if (radioButton1.Checked)
                             {
-                                case 0:
-                                    {
-                                        callbackInsertMoneda(conn, ROW, t);
-                                        break;
-                                    }
-                                case 1:
-                                    {
-
-                                        callbackInsertZona(conn, ROW, t);
-                                        break;
-                                    }
-                                case 2:
-                                    {
-                                        callbackInsertUnidades(conn, ROW, t);
-                                        break;
-                                    }
-                                case 3:
-                                    {
-                                        callbackInsertDepartamento(conn, ROW, t);
-                                        break;
-                                    }
-                                case 4:
-                                    {
-                                        callbackInsertImpuesto(conn, ROW, t);
-                                        break;
-                                    }
-                                case 7:
-                                    {
-
-                                        callBackInsertVendedores(conn, ROW);
-                                        break;
-                                    }
-
-                                case 8:
-                                    {
-
-                                        callBackInsertClientes(conn, ROW, t);
-                                        break;
-                                    }
-                                case 9:
-                                    {
-                                        callbackInsertAutorizados(conn, ROW, t);
-                                        break;
-                                    }
-                                case 10:
-                                    {
-                                        callbackInsertProveedores(conn, ROW, t);
-                                        break;
-                                    }
-                                case 11:
-                                    {
-                                        if (ROW.Cells["cod cliente"].Value != null)
+                                switch (comboBox1.SelectedIndex)
+                                {
+                                    case 0:
                                         {
-                                            if (ROW.Cells["saldo"].Value.ToString() != "0")
+                                            callbackInsertMoneda(conn, ROW, t);
+                                            break;
+                                        }
+                                    case 1:
+                                        {
+
+                                            callbackInsertZona(conn, ROW, t);
+                                            break;
+                                        }
+                                    case 2:
+                                        {
+                                            callbackInsertUnidades(conn, ROW, t);
+                                            break;
+                                        }
+                                    case 3:
+                                        {
+                                            callbackInsertDepartamento(conn, ROW, t);
+                                            break;
+                                        }
+                                    case 4:
+                                        {
+                                            callbackInsertImpuesto(conn, ROW, t);
+                                            break;
+                                        }
+                                    case 7:
+                                        {
+
+                                            callBackInsertVendedores(conn, ROW);
+                                            break;
+                                        }
+
+                                    case 8:
+                                        {
+
+                                            callBackInsertClientes(conn, ROW, t);
+                                            break;
+                                        }
+                                    case 9:
+                                        {
+                                            callbackInsertAutorizados(conn, ROW, t);
+                                            break;
+                                        }
+                                    case 10:
+                                        {
+                                            callbackInsertProveedores(conn, ROW, t);
+                                            break;
+                                        }
+                                    case 11:
+                                        {
+                                            if (ROW.Cells["cod cliente"].Value != null)
                                             {
-                                                callbackInsertCxC(conn, ROW, t);
-                                                if (ROW.Cells["cod impuesto1"].Value.ToString() != "")
+                                                if (ROW.Cells["saldo"].Value.ToString() != "0")
                                                 {
-                                                    callbackInsertCxCImp(conn, ROW, t, 1);
-                                                }
-                                                if (ROW.Cells["cod impuesto2"].Value.ToString() != "")
-                                                {
-                                                    callbackInsertCxCImp(conn, ROW, t, 2);
+                                                    callbackInsertCxC(conn, ROW, t);
+                                                    if (ROW.Cells["cod impuesto1"].Value.ToString() != "")
+                                                    {
+                                                        callbackInsertCxCImp(conn, ROW, t, 1);
+                                                    }
+                                                    if (ROW.Cells["cod impuesto2"].Value.ToString() != "")
+                                                    {
+                                                        callbackInsertCxCImp(conn, ROW, t, 2);
+                                                    }
                                                 }
                                             }
+                                            break;
                                         }
-                                        break;
-                                    }
-                                case 12:
-                                    {
-
-                                        if (ROW.Cells["cod proveedor"].Value != null)
+                                    case 12:
                                         {
-                                            if (ROW.Cells["saldo"].Value.ToString() != "0")
+
+                                            if (ROW.Cells["cod proveedor"].Value != null)
                                             {
-                                                callbackInsertCxP(conn, ROW, t);
-                                                if (ROW.Cells["cod impuesto1"].Value.ToString() != "")
+                                                if (ROW.Cells["saldo"].Value.ToString() != "0")
                                                 {
-                                                    callbackInsertCxPImp(conn, ROW, t, 1);
-                                                }
-                                                if (ROW.Cells["cod impuesto2"].Value.ToString() != "")
-                                                {
-                                                    callbackInsertCxPImp(conn, ROW, t, 2);
+                                                    callbackInsertCxP(conn, ROW, t);
+                                                    if (ROW.Cells["cod impuesto1"].Value.ToString() != "")
+                                                    {
+                                                        callbackInsertCxPImp(conn, ROW, t, 1);
+                                                    }
+                                                    if (ROW.Cells["cod impuesto2"].Value.ToString() != "")
+                                                    {
+                                                        callbackInsertCxPImp(conn, ROW, t, 2);
+                                                    }
                                                 }
                                             }
+                                            break;
                                         }
-                                        break;
-                                    }
+                                    case 13:
+                                        {
+                                            callbackInsertAdelantosProv(conn, ROW, t);
+                                            break;
+                                        }
 
-                                case 14:
-                                    {
-                                        callbackInsertUsuario(conn, ROW, t);
-                                        break;
-                                    }
+                                    case 14:
+                                        {
+                                            callbackInsertAdelantosCli(conn, ROW, t);
+                                            break;
+                                        }
 
+                                }
+                            }else
+                            {
+                                switch (comboBox1.SelectedIndex)
+                                {
+                                    case 0:
+                                        {
+                                            callbackInsertProfesiones(conn, ROW, t);
+                                            break;
+                                        }
+                                    case 1:
+                                        {
+                                            callbackInsertCargo(conn, ROW, t);
+                                            break;
+                                        }
+                                }
                             }
+                            
 
                         }
                         catch (NpgsqlException ex)
                         {
                             //Mensaje de error en la insercion de datos
-                            foreach (var msj in listaErr.Where(s => s.codigo == ex.Code))
+                            try
                             {
-                                ROW.Cells["Error"].Value = msj.Desc;
+                                var db = DBConn.Instance;
+                                var col = db.Collection<Errores>();
+                                ROW.Cells["Error"].Value = col.Find(x => x.codigo == ex.Code.ToString()).FirstOrDefault().Desc;
+                                ROW.DefaultCellStyle.BackColor = Color.Red;
+                                count = 0;
                             }
-                            ROW.DefaultCellStyle.BackColor = Color.Red;
-                            count = 0;
+                            catch (Exception)
+                            {
+                                MessageBox.Show("Hubo un Error en la insercion de datos. Excepcion: " + ex.Message.ToString());
+                            }
                             break;
-                            //MessageBox.Show("Hubo un Error en la insercion de datos. Excepcion: " + ex.Message.ToString());
+                           
                             // Cambio de color de la fila del DataGridView cuya insercion arrojo una excepcion                       
 
                         }
@@ -318,16 +281,17 @@ namespace MigradorXls
                     }
 
                 }
-                t.Commit();
-                conn.Close();
+                
                 Cursor.Current = Cursors.Default;
                 MessageBox.Show(count + " Filas se almacenaron correctamente", "Atencion", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception EX)
             {
+                
                 MessageBox.Show("Se produjo un error al conectarse a la base de datos\nError: " + EX.Message, "Atencion", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-
+            t.Commit();
+            conn.Close();
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -341,8 +305,8 @@ namespace MigradorXls
             else button1.Enabled = true;
         }
 
-        #region 
-        
+        #region Metodos Migracion Admin
+
         /// <summary>
         /// Array de los porcentajes de utilidad
         /// </summary>
@@ -353,7 +317,6 @@ namespace MigradorXls
 
             conn.Open();
             //Recorriendo el Datagridview e insertando cada valor
-
             NpgsqlTransaction t = conn.BeginTransaction();
 
             foreach (DataGridViewRow ROW in dataGridView1.Rows)
@@ -484,25 +447,7 @@ namespace MigradorXls
         {
             if (ROW.Cells["codigo"].Value != null)
             {
-                //reader = "0";
-                //NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn, t);
-                //sql = @"select count(*) from admin.gen_zona";
-                //dbcmd = new NpgsqlCommand(sql, conn);
-
-                //reader = dbcmd.ExecuteScalar().ToString();
-                //if (reader != "0")
-                //{
-                //    result = MessageBox.Show("Esta tabla ya posee registros \n ¿desea eliminarlos?","Atencion",MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
-                //    if (result == DialogResult.Yes)
-                //    {
-                //        sql = @"UPDATE admin.gen_banco SET cod_zona=null; 
-                //                ALTER TABLE admin.gen_zona DISABLE TRIGGER tg_01_ft_delete_registro; 
-                //                DELETE FROM admin.gen_zona;
-                //                ALTER TABLE admin.gen_zona ENABLE TRIGGER tg_01_ft_delete_registro;";
-                //        dbcmd = new NpgsqlCommand(sql, conn);
-                //        reader = dbcmd.ExecuteScalar().ToString();
-                //    }
-                //}
+                
                 sql = @"INSERT INTO admin.gen_zona(org_hijo,cod_interno,codigo,descri,descorta,
                     latitud,longitud,altitud, reg_usu_cc, reg_usu_cu,reg_estatus, 
                     disponible,migrado) VALUES(@orgHijo , @codInterno,
@@ -822,23 +767,16 @@ namespace MigradorXls
                 dbcmd.Parameters[11].Value = "INNOVA";
                 dbcmd.Parameters[12].Value = 1;
                 dbcmd.Parameters[13].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
-                foreach (var z in listaTipos.Where(a => a.tipo == ROW.Cells["tipo contribuyente"].Value.ToString()))
-                {
-                    dbcmd.Parameters[14].Value = z.codigo;
-                }
 
-                foreach (var z in listaTipos.Where(a => a.tipo == ROW.Cells["tipo persona"].Value.ToString()))
-                {
-                    dbcmd.Parameters[15].Value = z.codigo;
-                }
+                var db = DBConn.Instance;
+                var col = db.Collection<Tipos>();
+                dbcmd.Parameters[14].Value = col.Find(x => x.tipo == ROW.Cells["tipo contribuyente"].Value.ToString()).FirstOrDefault().codigo;
+                dbcmd.Parameters[15].Value = col.Find(x => x.tipo == ROW.Cells["tipo persona"].Value.ToString()).FirstOrDefault().codigo;              
                 dbcmd.Parameters[16].Value = ROW.Cells["codigo de zona"].Value;
                 dbcmd.Parameters[17].Value = true;
                 dbcmd.Parameters[18].Value = ROW.Cells["rif"].Value.ToString().Replace(" ", string.Empty);
                 dbcmd.Parameters[19].Value = ROW.Cells["apellidos"].Value;
-                foreach (var z in listaTipos.Where(a => a.tipo == ROW.Cells["Sexo"].Value.ToString()))
-                {
-                    dbcmd.Parameters[20].Value = z.codigo;
-                }
+                dbcmd.Parameters[20].Value = col.Find(x => x.tipo == ROW.Cells["Sexo"].Value.ToString()).FirstOrDefault().codigo;
                 dbcmd.Parameters[21].Value = ROW.Cells["direccion"].Value;
                 dbcmd.Parameters[22].Value = ROW.Cells["porc ret iva"].Value;
                 dbcmd.Parameters[23].Value = ROW.Cells["departamento"].Value;
@@ -917,15 +855,10 @@ namespace MigradorXls
                 dbcmd.Parameters[1].Value = codInteno;
                 dbcmd.Parameters[2].Value = ROW.Cells["código"].Value.ToString().Replace(" ", string.Empty);
                 dbcmd.Parameters[3].Value = ROW.Cells["razon social"].Value;
-                foreach (var z in listaTipos.Where(a => a.tipo == ROW.Cells["tipo de contribuyente"].Value.ToString().Replace(" ", string.Empty)))
-                {
-                    dbcmd.Parameters[4].Value = z.codigo;
-                }
-
-                foreach (var z in listaTipos.Where(a => a.tipo == ROW.Cells["tipo de persona"].Value.ToString().Replace(" ", string.Empty)))
-                {
-                    dbcmd.Parameters[5].Value = z.codigo;
-                }
+                var db = DBConn.Instance;
+                var col = db.Collection<Tipos>();
+                dbcmd.Parameters[4].Value = col.Find(x => x.tipo == ROW.Cells["tipo de contribuyente"].Value.ToString().Replace(" ", string.Empty)).FirstOrDefault().codigo;
+                dbcmd.Parameters[5].Value = col.Find(x => x.tipo == ROW.Cells["tipo de persona"].Value.ToString().Replace(" ", string.Empty)).FirstOrDefault().codigo;
                 dbcmd.Parameters[6].Value = ROW.Cells["rif/cedula"].Value.ToString().Replace(" ", string.Empty);
                 dbcmd.Parameters[7].Value = ROW.Cells["dirección"].Value;
                 dbcmd.Parameters[8].Value = ROW.Cells["descuento"].Value;
@@ -1306,13 +1239,12 @@ namespace MigradorXls
                     dbcmd.Parameters[27].Value = false; //ES DECIMAL
                     dbcmd.Parameters[28].Value = false; //ES UNIDAD
                     dbcmd.Parameters[29].Value = false; //ES PARTE
-                    foreach (var z in listaTipos.Where(a => a.tipo == ROW.Cells["tipo de Articulo"].Value.ToString()))
-                    {
-                        dbcmd.Parameters[30].Value = z.codigo;  //TIPO ARTICULO
-                    }
+                    var db = DBConn.Instance;
+                    var col = db.Collection<Tipos>();
+                    dbcmd.Parameters[30].Value = col.Find(x => x.tipo == ROW.Cells["tipo de Articulo"].Value.ToString().Replace(" ", string.Empty)).FirstOrDefault().codigo; //TIPO DE ARTICULO                   
                     dbcmd.Parameters[31].Value = 0; //COSTO
                     dbcmd.Parameters[32].Value = 0; //COSTO PROMEDIO
-                    dbcmd.Parameters[33].Value = 0; //COSTO ANTERIOR
+                    dbcmd.Parameters[33].Value = 0; //COSTO ANTERIOR    
                     dbcmd.Parameters[34].Value = 0; //COSTO REPOSICION
                     dbcmd.Parameters[35].Value = 0; //MEDIDA PESO
                     dbcmd.Parameters[36].Value = 0; //MEDIDA ALTO
@@ -1525,7 +1457,7 @@ namespace MigradorXls
                         @descuento, @tipo_descuento, @reg_usu_cc, @reg_usu_cu,  @reg_estatus,  @disponible, 
                         @porc_utilidad, @porc_comision, @porc_descuento)";
 
-                    //            //dbcmd.CommandText = sql;
+                   
                     dbcmd = new NpgsqlCommand(sql, conn, t);
 
                     dbcmd.Parameters.Add(new NpgsqlParameter("@org_hijo", NpgsqlDbType.Varchar));
@@ -1745,15 +1677,10 @@ namespace MigradorXls
                 dbcmd.Parameters[1].Value = codInteno;
                 dbcmd.Parameters[2].Value = ROW.Cells["código"].Value.ToString().Replace(" ", string.Empty);
                 dbcmd.Parameters[3].Value = ROW.Cells["razon social"].Value;
-                foreach (var z in listaTipos.Where(a => a.tipo == ROW.Cells["tipo de contribuyente"].Value.ToString().Replace(" ", string.Empty)))
-                {
-                    dbcmd.Parameters[4].Value = z.codigo;
-                }
-
-                foreach (var z in listaTipos.Where(a => a.tipo == ROW.Cells["tipo de persona"].Value.ToString().Replace(" ", string.Empty)))
-                {
-                    dbcmd.Parameters[5].Value = z.codigo;
-                }
+                var db = DBConn.Instance;
+                var col = db.Collection<Tipos>();
+                dbcmd.Parameters[4].Value = col.Find(x => x.tipo == ROW.Cells["tipo de contribuyente"].Value.ToString().Replace(" ",string.Empty)).FirstOrDefault().codigo;
+                dbcmd.Parameters[5].Value = col.Find(x => x.tipo == ROW.Cells["tipo de persona"].Value.ToString().Replace(" ", string.Empty)).FirstOrDefault().codigo;
                 dbcmd.Parameters[6].Value = ROW.Cells["rif"].Value.ToString().Replace(" ", string.Empty);
                 dbcmd.Parameters[7].Value = ROW.Cells["dirección"].Value;
                 dbcmd.Parameters[8].Value = ROW.Cells["descuento"].Value;
@@ -1917,7 +1844,7 @@ namespace MigradorXls
             dbcmd = new NpgsqlCommand(sql, conn);
 
             string reader = dbcmd.ExecuteScalar().ToString();
-            //t = conn.BeginTransaction();
+      
             //Insercion del detalle del ajuste
             foreach (DataGridViewRow ROW2 in dataGridView1.Rows)
             {
@@ -2001,8 +1928,7 @@ namespace MigradorXls
             sql = @"SELECT doc from admin.int_cargo order by fecha_reg desc";
             dbcmd = new NpgsqlCommand(sql, conn);
 
-            reader = dbcmd.ExecuteScalar().ToString();
-            //t = conn.BeginTransaction();
+            reader = dbcmd.ExecuteScalar().ToString();            
             foreach (DataGridViewRow ROW2 in dataGridView1.Rows)
             {
                 if (ROW2.Cells["codigo"].Value != null)
@@ -2075,9 +2001,10 @@ namespace MigradorXls
         {
             sql = @"INSERT INTO admin.fin_cxc(org_hijo,doc_num,cod_cli,fecha_emi,fecha_ven,factor,
                       total,saldo,saldo_inicial,total_exento,doc_control,reg_usu_cc,
-                      reg_estatus,cod_empleado , migrado, cod_impresorafiscal, descri, tipo_opera) VALUES(@org_hijo,@docNum,@codCli,
-                      @fechaEmi, @fechaVen, @factor, @total, @saldo, @saldoInicial, @totalEx, 
-                      @doc_control,@reg_usu_cc, @reg_estatus, @codEmpleado, @migrado, @cod_impresorafiscal, @descri, @tipoOpera)";
+                      reg_estatus,cod_empleado , migrado, cod_impresorafiscal, descri, tipo_opera, debito, credito) 
+                      VALUES(@org_hijo,@docNum,@codCli,@fechaEmi, @fechaVen, @factor, @total, @saldo, @saldoInicial, @totalEx, 
+                      @doc_control,@reg_usu_cc, @reg_estatus, @codEmpleado, @migrado, @cod_impresorafiscal, @descri, @tipoOpera,
+                        @debito, @credito)";
             NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn, t);
             dbcmd.Parameters.Add(new NpgsqlParameter("@org_hijo", NpgsqlDbType.Varchar));
             dbcmd.Parameters.Add(new NpgsqlParameter("@docNum", NpgsqlDbType.Varchar));
@@ -2097,6 +2024,9 @@ namespace MigradorXls
             dbcmd.Parameters.Add(new NpgsqlParameter("@cod_impresorafiscal", NpgsqlDbType.Varchar));
             dbcmd.Parameters.Add(new NpgsqlParameter("@descri", NpgsqlDbType.Varchar));
             dbcmd.Parameters.Add(new NpgsqlParameter("@tipoOpera", NpgsqlDbType.Integer));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@debito", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@credito", NpgsqlDbType.Double));
+
             dbcmd.Prepare();
 
             dbcmd.Parameters[0].Value = Globals.org;
@@ -2116,11 +2046,32 @@ namespace MigradorXls
             dbcmd.Parameters[14].Value = true;
             dbcmd.Parameters[15].Value = ROW.Cells["numero impresora fiscal"].Value;
             dbcmd.Parameters[16].Value = ROW.Cells["descripcion"].Value;
-            foreach (var z in listaTipos.Where(a => a.tipo == ROW.Cells["tipo operacion"].Value.ToString()))
+            var db = DBConn.Instance;
+            var col = db.Collection<Tipos>();
+            dbcmd.Parameters[17].Value = col.Find(x => x.tipo == ROW.Cells["tipo operacion"].Value.ToString().Replace(" ", string.Empty)).FirstOrDefault().codigo;
+            switch((string)ROW.Cells["tipo operacion"].Value)
             {
-                dbcmd.Parameters[17].Value = z.codigo;  //TIPO OPERACION
+                case "Fcxc":
+                    {
+                        dbcmd.Parameters[18].Value = 0;
+                        dbcmd.Parameters[19].Value = ROW.Cells["saldo inicial"].Value;
+                        break;
+                    }
+                case "NC":
+                    {
+                        dbcmd.Parameters[18].Value = ROW.Cells["saldo inicial"].Value;
+                        dbcmd.Parameters[19].Value = 0;
+                        break;
+                    }
+                case "ND":
+                    {
+                        dbcmd.Parameters[18].Value = 0;
+                        dbcmd.Parameters[19].Value = ROW.Cells["saldo inicial"].Value;
+                        break;
+                    }
             }
-
+            dbcmd.Parameters[18].Value = ROW.Cells["numero impresora fiscal"].Value;
+            dbcmd.Parameters[19].Value = ROW.Cells["descripcion"].Value;
             count += dbcmd.ExecuteNonQuery();
 
 
@@ -2168,9 +2119,10 @@ namespace MigradorXls
         {
             sql = @"INSERT INTO admin.fin_cxp(org_hijo,doc_num,cod_prov,fecha_emi,fecha_ven,factor,
                       total,saldo,saldo_inicial,total_exento,doc_control,reg_usu_cc,
-                      reg_estatus, migrado, cod_impresorafiscal, descri, tipo_opera) VALUES(@org_hijo,@docNum,@codPro,
+                      reg_estatus, migrado, cod_impresorafiscal, descri, tipo_opera,debito,credito) 
+                      VALUES(@org_hijo,@docNum,@codPro,
                       @fechaEmi, @fechaVen, @factor, @total, @saldo, @saldoInicial, @totalEx, 
-                      @doc_control,@reg_usu_cc, @reg_estatus, @migrado, @cod_impresorafiscal, @descri, @tipoOpera)";
+                      @doc_control,@reg_usu_cc, @reg_estatus, @migrado, @cod_impresorafiscal, @descri, @tipoOpera, @debito, @credito)";
             NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn, t);
             dbcmd.Parameters.Add(new NpgsqlParameter("@org_hijo", NpgsqlDbType.Varchar));
             dbcmd.Parameters.Add(new NpgsqlParameter("@docNum", NpgsqlDbType.Varchar));
@@ -2189,6 +2141,8 @@ namespace MigradorXls
             dbcmd.Parameters.Add(new NpgsqlParameter("@cod_impresorafiscal", NpgsqlDbType.Varchar));
             dbcmd.Parameters.Add(new NpgsqlParameter("@descri", NpgsqlDbType.Varchar));
             dbcmd.Parameters.Add(new NpgsqlParameter("@tipoOpera", NpgsqlDbType.Integer));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@debito", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@credito", NpgsqlDbType.Double));
             dbcmd.Prepare();
 
             dbcmd.Parameters[0].Value = Globals.org;
@@ -2207,11 +2161,30 @@ namespace MigradorXls
             dbcmd.Parameters[13].Value = true;
             dbcmd.Parameters[14].Value = ROW.Cells["numero impresora fiscal"].Value;
             dbcmd.Parameters[15].Value = ROW.Cells["descripcion"].Value;
-            foreach (var z in listaTipos.Where(a => a.tipo == ROW.Cells["tipo operacion"].Value.ToString()))
+            var db = DBConn.Instance;
+            var col = db.Collection<Tipos>();
+            dbcmd.Parameters[16].Value = col.Find(x => x.tipo == ROW.Cells["tipo operacion"].Value.ToString().Replace(" ", string.Empty)).FirstOrDefault().codigo;
+            switch ((string)ROW.Cells["tipo operacion"].Value)
             {
-                dbcmd.Parameters[16].Value = z.codigo;  //TIPO OPERACION
+                case "Fcxp":
+                    {
+                        dbcmd.Parameters[17].Value = ROW.Cells["saldo inicial"].Value;
+                        dbcmd.Parameters[18].Value = 0;
+                        break;
+                    }
+                case "NC":
+                    {
+                        dbcmd.Parameters[18].Value = 0;
+                        dbcmd.Parameters[19].Value = ROW.Cells["saldo inicial"].Value;
+                        break;
+                    }
+                case "ND":
+                    {
+                        dbcmd.Parameters[18].Value = ROW.Cells["saldo inicial"].Value;
+                        dbcmd.Parameters[19].Value = 0;
+                        break;
+                    }
             }
-
             count += dbcmd.ExecuteNonQuery();
         }
 
@@ -2252,17 +2225,118 @@ namespace MigradorXls
             count += dbcmd.ExecuteNonQuery();
         }
 
+        private void callbackInsertAdelantosCli(NpgsqlConnection conn, DataGridViewRow ROW, NpgsqlTransaction t)
+        {
+            if (ROW.Cells["Codigo del Cliente"].Value != null)
+            {
+                sql = @"INSERT INTO admin.fin_cli_adelanto(org_hijo,saldo,reg_usu_cc,reg_estatus, cli_hijo,
+                     migrado) VALUES(@orgHijo ,
+                    @saldo, @regusucc , @regEstatus,@clihijo, @migrado)";
+                NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn, t);
+                dbcmd.Parameters.Add(new NpgsqlParameter("@orgHijo", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@saldo", NpgsqlDbType.Double));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@regusucc", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@regEstatus", NpgsqlDbType.Integer));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@clihijo", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
 
 
+                dbcmd.Prepare();
+
+                dbcmd.Parameters[0].Value = Globals.org;
+                dbcmd.Parameters[1].Value = ROW.Cells["Monto"].Value;
+                dbcmd.Parameters[2].Value = "INNOVA";
+                dbcmd.Parameters[3].Value = 1;
+                dbcmd.Parameters[4].Value = ROW.Cells["Codigo del Cliente"].Value;
+                dbcmd.Parameters[5].Value = true;
+
+                count += dbcmd.ExecuteNonQuery();
+
+                sql = @"INSERT INTO admin.fin_cli_ade_det(org_hijo,monto,observacion, cli_hijo,
+                     fecha,migrado) VALUES(@orgHijo , @monto,
+                    @observacion , @clihijo,@fecha, @migrado)";
+                dbcmd = new NpgsqlCommand(sql, conn, t);
+                dbcmd.Parameters.Add(new NpgsqlParameter("@orgHijo", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@monto", NpgsqlDbType.Double));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@observacion", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@clihijo", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@fecha", NpgsqlDbType.Date));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
 
 
+                dbcmd.Prepare();
+
+                dbcmd.Parameters[0].Value = Globals.org;
+                dbcmd.Parameters[1].Value = ROW.Cells["Monto"].Value;
+                dbcmd.Parameters[2].Value = ROW.Cells["Observacion"].Value;
+                dbcmd.Parameters[3].Value = ROW.Cells["Codigo del Cliente"].Value;
+                dbcmd.Parameters[4].Value = ExtractDate(ROW.Cells["Fecha adelanto"].Value.ToString());
+                dbcmd.Parameters[5].Value = true;
+
+                count += dbcmd.ExecuteNonQuery();
+
+            }
+        }
+
+        private void callbackInsertAdelantosProv(NpgsqlConnection conn, DataGridViewRow ROW, NpgsqlTransaction t)
+        {
+            if (ROW.Cells["Codigo del Proveedor"].Value != null)
+            {
+                sql = @"INSERT INTO admin.fin_prov_adelanto(org_hijo,saldo,reg_usu_cc,reg_estatus, prov_hijo,
+                     migrado) VALUES(@orgHijo , 
+                    @saldo, @regusucc , @regEstatus,@clihijo, @migrado)";
+                NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn, t);
+                dbcmd.Parameters.Add(new NpgsqlParameter("@orgHijo", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@saldo", NpgsqlDbType.Double));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@regusucc", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@regEstatus", NpgsqlDbType.Integer));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@clihijo", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
+
+
+                dbcmd.Prepare();
+
+                dbcmd.Parameters[0].Value = Globals.org;
+                dbcmd.Parameters[1].Value = ROW.Cells["Monto"].Value;
+                dbcmd.Parameters[2].Value = "INNOVA";
+                dbcmd.Parameters[3].Value = 1;
+                dbcmd.Parameters[4].Value = ROW.Cells["Codigo del Proveedor"].Value;
+                dbcmd.Parameters[5].Value = true;
+
+                count += dbcmd.ExecuteNonQuery();
+
+                sql = @"INSERT INTO admin.fin_prov_ade_det(org_hijo,monto,observacion, prov_hijo,
+                     fecha,migrado) VALUES(@orgHijo , @monto,
+                     @observacion , @clihijo,@fecha, @migrado)";
+                dbcmd = new NpgsqlCommand(sql, conn, t);
+                dbcmd.Parameters.Add(new NpgsqlParameter("@orgHijo", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@monto", NpgsqlDbType.Double));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@observacion", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@clihijo", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@fecha", NpgsqlDbType.Date));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
+
+
+                dbcmd.Prepare();
+
+                dbcmd.Parameters[0].Value = Globals.org;
+                dbcmd.Parameters[1].Value = ROW.Cells["Monto"].Value;
+                dbcmd.Parameters[2].Value = ROW.Cells["Observacion"].Value;
+                dbcmd.Parameters[3].Value = ROW.Cells["Codigo del Proveedor"].Value;
+                dbcmd.Parameters[4].Value = ExtractDate(ROW.Cells["Fecha adelanto"].Value.ToString());
+                dbcmd.Parameters[5].Value = true;
+
+                count += dbcmd.ExecuteNonQuery();
+            }
+
+        }
 
         public static DateTime? ExtractDate(string myDate)
         {
             if (!string.IsNullOrEmpty(myDate) && !string.IsNullOrWhiteSpace(myDate))
             {
                 DateTime dt;
-                var formatStrings = new string[] { "MM/dd/yyyy hh:mm:ss", "MM/d/yyyy" };
+                var formatStrings = new string[] { "dd/MM/yyyy h:mm:ss", "dd/MM/yyyy","d/M/yyyy" };
                 dt = DateTime.ParseExact(myDate, formatStrings, new CultureInfo("en-US"), DateTimeStyles.None);
                 return dt;
             }
@@ -2277,23 +2351,98 @@ namespace MigradorXls
         }
         #endregion
 
-        private void Main_Load(object sender, EventArgs e)
+        #region Metodos Migracion Nomina
+        private void callbackInsertProfesiones(NpgsqlConnection conn, DataGridViewRow ROW, NpgsqlTransaction t)
         {
+            if (ROW.Cells["codigo"].Value != null)
+            {
 
+                sql = @"INSERT INTO nomina.profesion(org_hijo,codigo,descri,descorta,abreviatura,
+                    tipo,reg_usu_cc, reg_usu_cu,reg_estatus, 
+                    disponible,migrado) VALUES(@orgHijo , @codigo,
+                    @descri, @descorta , @abreviatura, @tipo, @reg_usu_cc , 
+                    @reg_usu_cu, @regEstatus, @disponible, @migrado)";
+                NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn, t);
+                dbcmd.Parameters.Add(new NpgsqlParameter("@orghijo", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@codigo", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@descri", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@descorta", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@abreviatura", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@tipo", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cc", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cu", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@regEstatus", NpgsqlDbType.Integer));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@disponible", NpgsqlDbType.Boolean));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
+
+                dbcmd.Prepare();
+
+                dbcmd.Parameters[0].Value = Globals.org;
+                dbcmd.Parameters[1].Value = ROW.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
+                dbcmd.Parameters[2].Value = ROW.Cells["Descripcion de la profesion"].Value;
+                dbcmd.Parameters[3].Value = ROW.Cells["Descripcion corta"].Value;
+                dbcmd.Parameters[4].Value = ROW.Cells["Abreviatura"].Value; 
+                dbcmd.Parameters[5].Value = ROW.Cells["Tipo de Profesion"].Value;
+                dbcmd.Parameters[6].Value = "INNOVA";
+                dbcmd.Parameters[7].Value = "INNOVA";
+                dbcmd.Parameters[8].Value = 1;
+                dbcmd.Parameters[9].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[10].Value = true;
+                count += dbcmd.ExecuteNonQuery();
+            }
         }
 
+        private void callbackInsertCargo(NpgsqlConnection conn, DataGridViewRow ROW, NpgsqlTransaction t)
+        {
+            if (ROW.Cells["codigo"].Value != null)
+            {
+
+                sql = @"INSERT INTO nomina.cargo(org_hijo,codigo,descri,descorta,riego,
+                    nivel_prof,reg_usu_cc, reg_usu_cu,reg_estatus, 
+                    disponible,migrado) VALUES(@orgHijo , @codigo,
+                    @descri, @descorta , @riesgo, @nivelProf, @reg_usu_cc , 
+                    @reg_usu_cu, @regEstatus, @disponible, @migrado)";
+                NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn, t);
+                dbcmd.Parameters.Add(new NpgsqlParameter("@orghijo", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@codigo", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@descri", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@descorta", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@riesgo", NpgsqlDbType.Integer));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@nivelProf", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cc", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cu", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@regEstatus", NpgsqlDbType.Integer));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@disponible", NpgsqlDbType.Boolean));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
+
+                dbcmd.Prepare();
+
+                dbcmd.Parameters[0].Value = Globals.org;
+                dbcmd.Parameters[1].Value = ROW.Cells["Codigo"].Value.ToString().Replace(" ", string.Empty);
+                dbcmd.Parameters[2].Value = ROW.Cells["Descripcion del cargo"].Value;
+                dbcmd.Parameters[3].Value = ROW.Cells["Descripcion corta"].Value;
+                dbcmd.Parameters[4].Value = ROW.Cells["Escala de riesgo"].Value;
+                dbcmd.Parameters[5].Value = ROW.Cells["Nivel de Profesion"].Value;
+                dbcmd.Parameters[6].Value = "INNOVA";
+                dbcmd.Parameters[7].Value = "INNOVA";
+                dbcmd.Parameters[8].Value = 1;
+                dbcmd.Parameters[9].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[10].Value = true;
+                count += dbcmd.ExecuteNonQuery();
+            }
+        }
+        #endregion Nomina
+
+        #region Eventos, Metodos y Clases
         private void radioButton2_CheckedChanged(object sender, EventArgs e)
         {
             if (radioButton2.Checked)
             {
-                using (var db = new LiteDatabase("Colleccion.db"))
-                {
-                    var col = db.GetCollection<payroll>("PayRoll");
-                    var Z = col.Find(Query.All());
-                    comboBox1.DataSource = Z.ToList();
-                    comboBox1.DisplayMember = "desc";
-                    comboBox1.ValueMember = "id";
-                }
+                var db = DBConn.Instance;
+                var c = db.Collection<payroll>();
+                comboBox1.DataSource = c.Find(Query.All()).ToList();
+                comboBox1.DisplayMember = "desc";
+                comboBox1.ValueMember = "id";
             }
         }
 
@@ -2301,14 +2450,11 @@ namespace MigradorXls
         {
             if (radioButton1.Checked)
             {
-                using (var db = new LiteDatabase("Colleccion.db"))
-                {
-                    var col = db.GetCollection<admin>("Admin");
-                    var Z = col.Find(Query.All());
-                    comboBox1.DataSource = Z.ToList();
-                    comboBox1.DisplayMember = "desc";
-                    comboBox1.ValueMember = "id";
-                }
+                var db = DBConn.Instance;
+                var c = db.Collection<admin>();
+                comboBox1.DataSource = c.Find(Query.All()).ToList();
+                comboBox1.DisplayMember = "desc";
+                comboBox1.ValueMember = "id";
             }
         }
     }
@@ -2362,13 +2508,17 @@ namespace MigradorXls
     {
         public String Desc { get; set; }
         public String codigo { get; set; }
+        public Errores()
+        {
 
+        }
         public Errores(string Descs, string codigos)
         {
             this.Desc = Descs;
             this.codigo = codigos;
         }
     }
+    #endregion
 }
 
 

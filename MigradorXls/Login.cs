@@ -23,6 +23,7 @@ namespace MigradorXls
         {
             InitializeComponent();
             DialogResult = DialogResult.Cancel;
+            label3.Text += Application.ProductVersion;
             
         }
 

@@ -41,9 +41,6 @@
             // comboBox2
             // 
             this.comboBox2.FormattingEnabled = true;
-            this.comboBox2.Items.AddRange(new object[] {
-            "Zonas",
-            "Moneda"});
             this.comboBox2.Location = new System.Drawing.Point(76, 57);
             this.comboBox2.Name = "comboBox2";
             this.comboBox2.Size = new System.Drawing.Size(121, 21);
@@ -129,7 +126,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.comboBox2);
             this.Name = "MigracionBD";
-            this.Text = "MigracionBD";
+            this.Text = "Migracios por Base de Datos";
             this.ResumeLayout(false);
             this.PerformLayout();
 

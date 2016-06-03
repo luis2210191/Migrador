@@ -23,7 +23,8 @@ namespace MigradorXls
                 Environment.Exit(-1);
             }
             InitializeComponent();
-            label1.Text = "Bienvenido "+Globals.userid;
+            
+            label3.Text += Application.ProductVersion;
 
         }
 

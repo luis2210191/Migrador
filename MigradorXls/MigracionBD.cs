@@ -30,43 +30,54 @@ namespace MigradorXls
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if(comboBox2.Text == "Zonas")
-            {
-                MigrarZonaBD();
-            }
+                MigrarZonaBD();            
         }
 
         private void MigrarZonaBD()
         {
-            string txtConStr = "DSN=conDBisam";
-            //path : The complete path to the folder, where the DBISAM Tables 
-            //(i.e. *.dat files) are present.
-            OdbcConnection objODBCCon = new OdbcConnection(txtConStr);
-            objODBCCon.Open();        
-            NpgsqlConnection conn = new NpgsqlConnection(connectionString);
-            int i = 0;
-            int lenght = TAB.Rows.Count;
-            TAB.Clear();
-            switch (comboBox2.Text)
+            try
             {
-                case "Zonas":
-                    {
-                        A2Zonas(objODBCCon);
-                        while (i < lenght)
+                string txtConStr = "DSN=conDBisam";
+                //path : The complete path to the folder, where the DBISAM Tables 
+                //(i.e. *.dat files) are present.
+                OdbcConnection objODBCCon = new OdbcConnection(txtConStr);
+                objODBCCon.Open();
+                NpgsqlConnection conn = new NpgsqlConnection(connectionString);
+                int i = 0;
+                int lenght = TAB.Rows.Count;
+                TAB.Clear();
+                switch (comboBox2.Text)
+                {
+                    case "Zonas":
                         {
-                            callbackInsertZona(conn, TAB, i);
-                            i++;
+                            A2Zonas(objODBCCon);
+                            while (i < lenght)
+                            {
+                                callbackInsertZona(conn, TAB, i);
+                                i++;
+                            }
+                            break;
                         }
-                        break;
-                    }
-                case "Moneda":
-                    {
+                    case "Moneda":
+                        {
+                            A2Moneda(objODBCCon);
+                            while (i < lenght)
+                            {
+                                callbackInsertMoneda(conn, TAB, i);
+                                i++;
+                            }
+                            break;
+                        }
+                }
 
-                        break;
-                    }
+                objODBCCon.Close();
+                MessageBox.Show("La Migracion de la tabla "+comboBox2.Text+" se ha realizado","Atencion", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch(Exception E)
+            {
+                MessageBox.Show(E.Message.ToString());
             }
             
-            objODBCCon.Close();
         }
 
         private void A2Zonas(OdbcConnection objODBCCon)
@@ -129,6 +140,92 @@ namespace MigradorXls
 
         }
 
+        private void A2Vendedores(OdbcConnection objODBCCon)
+        {
+            string oString = "Select FV_CODIGO, FV_DESCRIPCION, FV_DESCRIPCIONDETALLADA, FV_DIRECCION, FM_STATUS, from Svendedores";
+            OdbcDataAdapter comm = new OdbcDataAdapter(oString, objODBCCon);
+            comm.Fill(TAB);
+        }
+        private void callbackInsertVendedores(NpgsqlConnection conn, DataTable ROW, int i)
+        {
+            //sql = @"INSERT INTO admin.org_talento(org_hijo,cod_interno,
+            //            codigo,cedula,descri,es_vendedor,es_cobrador,es_servidor,
+            //            es_despachador,fecha_nac,reg_usu_cc,reg_usu_cu,
+            //            reg_estatus,disponible,tipo_cont,tipo_pers,cod_zona,migrado, 
+            //            rif, descorta, sexo, direc1, cod_depar, porc_retencion, fecha_rif, fecha_ing, observacion )
+            //            VALUES(@orgHijo , @codInterno, @codigo, @cedula, @descri, 
+            //            @esVendedor,@esCobrador, @esServidor, @esDespachador , @fechaNac, 
+            //            @reg_usu_cc , @reg_usu_cu, @regEstatus, @disponible, @tipoCont, @tipoPers, 
+            //            @codZona , @migrado, @rif, @descorta, @sexo, @direc1,
+            //            @cod_depar, @porc_retencion, @fecharif, @fecha_ing, @observacion)";
+            //NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn);
+
+
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@orghijo", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@codInterno", NpgsqlDbType.Bigint));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@codigo", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@cedula", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@descri", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@esVendedor", NpgsqlDbType.Boolean));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@esCobrador", NpgsqlDbType.Boolean));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@esServidor", NpgsqlDbType.Boolean));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@esDespachador", NpgsqlDbType.Boolean));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@fechaNac", NpgsqlDbType.Date));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cc", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cu", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@regEstatus", NpgsqlDbType.Integer));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@disponible", NpgsqlDbType.Boolean));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@tipoCont", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@tipoPers", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@codZona", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@rif", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@descorta", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@sexo", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@direc1", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@porc_retencion", NpgsqlDbType.Double));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@cod_depar", NpgsqlDbType.Varchar));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@fecharif", NpgsqlDbType.Date));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@fecha_ing", NpgsqlDbType.Date));
+            //dbcmd.Parameters.Add(new NpgsqlParameter("@observacion", NpgsqlDbType.Varchar));
+
+
+            //dbcmd.Prepare();
+
+
+            //dbcmd.Parameters[0].Value = Globals.org;
+            //dbcmd.Parameters[1].Value = codInteno;
+            //dbcmd.Parameters[2].Value = ROW.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
+            //dbcmd.Parameters[3].Value = ROW.Cells["cedula"].Value;
+            //dbcmd.Parameters[4].Value = ROW.Cells["nombres"].Value;
+            //dbcmd.Parameters[5].Value = convertBoolean(ROW.Cells["vendedor"].Value);
+            //dbcmd.Parameters[6].Value = convertBoolean(ROW.Cells["cobrador"].Value);
+            //dbcmd.Parameters[7].Value = convertBoolean(ROW.Cells["servidor"].Value);
+            //dbcmd.Parameters[8].Value = convertBoolean(ROW.Cells["despachador"].Value);
+            //dbcmd.Parameters[9].Value = ExtractDate(ROW.Cells["fecha nac"].Value.ToString());
+            //dbcmd.Parameters[10].Value = "INNOVA";
+            //dbcmd.Parameters[11].Value = "INNOVA";
+            //dbcmd.Parameters[12].Value = 1;
+            //dbcmd.Parameters[13].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+
+            //var db = DBConn.Instance;
+            //var col = db.Collection<Tipos>();
+            //dbcmd.Parameters[14].Value = col.Find(x => x.tipo == ROW.Cells["tipo contribuyente"].Value.ToString()).FirstOrDefault().codigo;
+            //dbcmd.Parameters[15].Value = col.Find(x => x.tipo == ROW.Cells["tipo persona"].Value.ToString()).FirstOrDefault().codigo;
+            //dbcmd.Parameters[16].Value = ROW.Cells["codigo de zona"].Value;
+            //dbcmd.Parameters[17].Value = true;
+            //dbcmd.Parameters[18].Value = ROW.Cells["rif"].Value.ToString().Replace(" ", string.Empty);
+            //dbcmd.Parameters[19].Value = ROW.Cells["apellidos"].Value;
+            //dbcmd.Parameters[20].Value = col.Find(x => x.tipo == ROW.Cells["Sexo"].Value.ToString()).FirstOrDefault().codigo;
+            //dbcmd.Parameters[21].Value = ROW.Cells["direccion"].Value;
+            //dbcmd.Parameters[22].Value = ROW.Cells["porc ret iva"].Value;
+            //dbcmd.Parameters[23].Value = ROW.Cells["departamento"].Value;
+            //dbcmd.Parameters[24].Value = ExtractDate(ROW.Cells["fecha vcto rif"].Value.ToString());
+            //dbcmd.Parameters[25].Value = ExtractDate(ROW.Cells["fecha de ingreso"].Value.ToString());
+            //dbcmd.Parameters[26].Value = "ESTA DATA FUE MIGRADA, POR FAVOR VERIFICAR LOS DATOS";
+
+            //count += dbcmd.ExecuteNonQuery();
+        }
         private void callbackInsertMoneda(NpgsqlConnection conn, DataTable ROW, int i)
         {
             codInterno += 1;

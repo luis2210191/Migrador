@@ -45,6 +45,18 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_5FC71EFA19F15FCCE3AFCF1905988DEB"
+        "OwnerKey" = "8:_C562DA58536948BCA6534AFF59F04014"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_68BC094E31654EB49F4DB3E17C48BEF3"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_A6DA72CCE180DDC916DEB22BD90E3DD9"
         "OwnerKey" = "8:_C562DA58536948BCA6534AFF59F04014"
         "MsmSig" = "8:_UNDEFINED"
@@ -113,6 +125,12 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_E49E80E5A7691580C866E3A93E49A574"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_5FC71EFA19F15FCCE3AFCF1905988DEB"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -190,6 +208,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.5"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.5 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.5"
+                    }
+                }
             }
         }
     }
@@ -331,6 +357,57 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_5FC71EFA19F15FCCE3AFCF1905988DEB"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:LiteDB, Version=1.0.4.0, Culture=neutral, PublicKeyToken=5c2fff750805920e, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_5FC71EFA19F15FCCE3AFCF1905988DEB"
+                    {
+                    "Name" = "8:LiteDB.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:LiteDB.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_05F59A3903E048FA8F05612E27008168"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_68BC094E31654EB49F4DB3E17C48BEF3"
+            {
+            "SourcePath" = "8:..\\MigradorXls\\bin\\Debug\\Colleccion.db"
+            "TargetName" = "8:Colleccion.db"
+            "Tag" = "8:"
+            "Folder" = "8:_05F59A3903E048FA8F05612E27008168"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_A6DA72CCE180DDC916DEB22BD90E3DD9"
@@ -503,7 +580,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Setup BackRest 2.1"
         "ProductCode" = "8:{CC26500D-E0E4-48F1-BC62-820DDB322F86}"
-        "PackageCode" = "8:{50CFAF2D-9343-48AE-AB61-A5A3470C683A}"
+        "PackageCode" = "8:{C9080A45-C1A6-42DC-9FE3-11902AAC5461}"
         "UpgradeCode" = "8:{6E502831-DF39-448A-8539-0B5403A3435E}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
