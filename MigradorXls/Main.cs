@@ -72,7 +72,7 @@ namespace MigradorXls
                 try
                 {
                     //inicio de conexion al archivo .xls
-                    Myconnetion = new System.Data.OleDb.OleDbConnection("provider=Microsoft.Jet.OLEDB.4.0;Data Source =" + file + "; Extended Properties=\"Excel 8.0;HDR=YES;IMEX=1;ImportMixedTypes=Text;TypeGuessRows=0\"");
+                    Myconnetion = new System.Data.OleDb.OleDbConnection("provider=Microsoft.Jet.OLEDB.4.0;Data Source =" + file + "; Extended Properties=\"Excel 8.0;HDR=YES;IMEX=1;\"");
                     Myconnetion.Open();
                     //carga de informacion del .xls
 
@@ -2063,7 +2063,7 @@ namespace MigradorXls
 
             dbcmd.Parameters[0].Value = Globals.org;
             dbcmd.Parameters[1].Value = ROW.Cells["numero factura"].Value;
-            dbcmd.Parameters[2].Value = ROW.Cells["cod cliente"].Value.ToString().Replace(" ", string.Empty); ;
+            dbcmd.Parameters[2].Value = ROW.Cells["cod cliente"].Value.ToString().Replace(" ", string.Empty); 
             dbcmd.Parameters[3].Value = ExtractDate(ROW.Cells["fecha emision"].Value.ToString());
             dbcmd.Parameters[4].Value = ExtractDate(ROW.Cells["fecha vencimiento"].Value.ToString());
             dbcmd.Parameters[5].Value = 0;
@@ -2074,7 +2074,7 @@ namespace MigradorXls
             dbcmd.Parameters[10].Value = ROW.Cells["numero de control"].Value;
             dbcmd.Parameters[11].Value = "INNOVA";
             dbcmd.Parameters[12].Value = 1;
-            dbcmd.Parameters[13].Value = ROW.Cells["cod vendedor"].Value.ToString().Replace(" ", string.Empty); ;
+            dbcmd.Parameters[13].Value = ROW.Cells["cod vendedor"].Value.ToString().Replace(" ", string.Empty);
             dbcmd.Parameters[14].Value = true;
             dbcmd.Parameters[15].Value = ROW.Cells["numero impresora fiscal"].Value;
             dbcmd.Parameters[16].Value = ROW.Cells["descripcion"].Value;
@@ -2102,8 +2102,7 @@ namespace MigradorXls
                         break;
                     }
             }
-            dbcmd.Parameters[18].Value = ROW.Cells["numero impresora fiscal"].Value;
-            dbcmd.Parameters[19].Value = ROW.Cells["descripcion"].Value;
+            
             count += dbcmd.ExecuteNonQuery();
 
 
