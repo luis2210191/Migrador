@@ -30,16 +30,19 @@ namespace MigradorXls
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Main main = new Main();
-            main.ShowDialog();
+            if (this.ActiveMdiChild != null) this.ActiveMdiChild.Close();
+            var myForm = new Main();
+            myForm.MdiParent = this;
+            myForm.ControlBox = false;
+            myForm.MaximizeBox = false;
+            myForm.MinimizeBox = false;
+            myForm.ShowIcon = false;
+            myForm.Text = "";
+            myForm.Dock = DockStyle.Fill;
+            myForm.Show();
+           
         }
-
-        private void button6_Click(object sender, EventArgs e)
-        {
-            Ajustes aj = new Ajustes();
-            aj.ShowDialog();
-        }
-
+       
         private void button4_Click(object sender, EventArgs e)
         {
            if( MessageBox.Show("¿Esta seguro que desea salir?", "Atencion", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
@@ -50,9 +53,19 @@ namespace MigradorXls
 
         private void button2_Click(object sender, EventArgs e)
         {
-            MigracionBD bd = new MigracionBD();
-            bd.Show();
+            if (this.ActiveMdiChild != null) this.ActiveMdiChild.Close();
+            var myForm = new MigracionBD();
+            myForm.MdiParent = this;
+            myForm.ControlBox = false;
+            myForm.MaximizeBox = false;
+            myForm.MinimizeBox = false;
+            myForm.ShowIcon = false;
+            myForm.Text = "";
+            myForm.Dock = DockStyle.Fill;
+            myForm.Show();
         }
+
+        
     }
 
 

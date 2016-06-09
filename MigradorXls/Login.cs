@@ -22,10 +22,16 @@ namespace MigradorXls
         public Login()
         {
             InitializeComponent();
+            SetStyle(ControlStyles.UserPaint, true);
+            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+            SetStyle(ControlStyles.DoubleBuffer, true);
             DialogResult = DialogResult.Cancel;
             label3.Text += Application.ProductVersion;
+
+            
             
         }
+
 
         private void button1_Click(object sender, EventArgs e)
         {

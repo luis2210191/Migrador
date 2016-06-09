@@ -123,9 +123,29 @@ namespace MigradorXls.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap fondo_negro {
+            get {
+                object obj = ResourceManager.GetObject("fondo_negro", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap innova_back_rest_logo {
             get {
                 object obj = ResourceManager.GetObject("innova back rest logo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap logo_trans {
+            get {
+                object obj = ResourceManager.GetObject("logo_trans", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

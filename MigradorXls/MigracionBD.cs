@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using Npgsql;
 using NpgsqlTypes;
 using System.Data.Odbc;
+using LiteDB;
 
 namespace MigradorXls
 {
@@ -26,6 +27,11 @@ namespace MigradorXls
         public MigracionBD()
         {
             InitializeComponent();
+            var db = DBConn.Instance;
+            var c = db.Collection<admin>();
+            comboBox2.DataSource = c.Find(Query.All()).ToList();
+            comboBox2.DisplayMember = "desc";
+            comboBox2.ValueMember = "id";
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -65,6 +71,15 @@ namespace MigradorXls
                             {
                                 callbackInsertMoneda(conn, TAB, i);
                                 i++;
+                            }
+                            break;
+                        }
+                    case "Talento":
+                        {
+                            A2Vendedores(objODBCCon);
+                            while (i < lenght)
+                            {
+                                callbackInsertVendedores(conn, TAB, i);
                             }
                             break;
                         }
