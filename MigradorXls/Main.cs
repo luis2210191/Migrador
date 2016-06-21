@@ -320,7 +320,7 @@ namespace MigradorXls
         /// <summary>
         /// Array de los porcentajes de utilidad
         /// </summary>
-        public string[] arrayPU;
+        public double[] arrayPU;
         private void Exportar_Servicios()
         {
             NpgsqlConnection conn = new NpgsqlConnection(connectionString);
@@ -333,12 +333,12 @@ namespace MigradorXls
             {
                 if (ROW.Cells["codigo"].Value != null)
                 {
-                    arrayPU = new string[]{
-                    "30",
-                    ROW.Cells["%utilidad1"].Value.ToString(),
-                    ROW.Cells["%utilidad2"].Value.ToString(),
-                    ROW.Cells["%utilidad3"].Value.ToString(),
-                    ROW.Cells["%utilidad4"].Value.ToString(),
+                    arrayPU = new double[]{
+                    30,
+                    porcUtilidad(Convert.ToDouble(ROW.Cells["%utilidad1"].Value)),
+                    porcUtilidad(Convert.ToDouble(ROW.Cells["%utilidad2"].Value)),
+                    porcUtilidad(Convert.ToDouble(ROW.Cells["%utilidad3"].Value)),
+                    porcUtilidad(Convert.ToDouble(ROW.Cells["%utilidad4"].Value)),
 
                 };
 
@@ -384,9 +384,9 @@ namespace MigradorXls
             cantidad_items = 0;
             nro_items = 0;
             item = 0;
+            bool FAIL = false;
             //Abriendo la coneccion con npgsql
             NpgsqlConnection conn = new NpgsqlConnection(connectionString);
-
             conn.Open();
             //Recorriendo el Datagridview e insertando cada valor
 
@@ -396,13 +396,11 @@ namespace MigradorXls
             {
                 if (ROW.Cells["codigo"].Value != null)
                 {
-                    arrayPU = new string[]{
-                    "30",
-                    ROW.Cells["%utilidad1"].Value.ToString(),
-                    ROW.Cells["%utilidad2"].Value.ToString(),
-                    ROW.Cells["%utilidad3"].Value.ToString(),
-                    ROW.Cells["%utilidad4"].Value.ToString(),
-
+                    arrayPU = new double[]{
+                    porcUtilidad(Convert.ToDouble(ROW.Cells["%utilidad1"].Value)),
+                    porcUtilidad(Convert.ToDouble(ROW.Cells["%utilidad2"].Value)),
+                    porcUtilidad(Convert.ToDouble(ROW.Cells["%utilidad3"].Value)),
+                    porcUtilidad(Convert.ToDouble(ROW.Cells["%utilidad4"].Value)),
                 };
                     try
                     {
@@ -414,13 +412,12 @@ namespace MigradorXls
                         {
                             callbackInsertArticuloImpuestos(conn, ROW, t, 1);
                         }
-                        if (ROW.Cells["cod impuesto2"].Value.ToString() != "")
+                        if (!string.IsNullOrWhiteSpace(ROW.Cells["cod impuesto2"].Value.ToString()))
                         {
                             callbackInsertArticuloImpuestos(conn, ROW, t, 2);
                         }
-
-
-                        for (int i = 0; i < 5; i++)
+                        
+                        for (int i = 0; i < 4; i++)
                         {
                             callbackInsertArticuloPrecio(conn, ROW, t, i);
                         }
@@ -436,7 +433,11 @@ namespace MigradorXls
                             var col = db.Collection<Errores>();
                             ROW.Cells["Error"].Value = col.Find(x => x.codigo == ex.Code.ToString()).FirstOrDefault().Desc;
                             ROW.DefaultCellStyle.BackColor = Color.Red;
+
+
+
                             count = 0;
+                            FAIL = true;
                         }
                         catch (Exception)
                         {
@@ -448,12 +449,33 @@ namespace MigradorXls
             }
             try
             {
-                callbackInsertCargoInventario(conn, t);
+                if (!FAIL)
+                {
+                    callbackInsertCargoInventario(conn, t);
+
+                    foreach (DataGridViewRow row in dataGridView1.Rows)
+                    {
+                        try
+                        {
+                            callbackUpdateArt(conn, row, t);
+                        }
+                        catch (NpgsqlException ex)
+                        {
+                            var db = DBConn.Instance;
+                            var col = db.Collection<Errores>();
+                            row.Cells["Error"].Value = col.Find(x => x.codigo == ex.Code.ToString()).FirstOrDefault().Desc;
+                            row.DefaultCellStyle.BackColor = Color.Red;
+                            MessageBox.Show(ex.Message);
+                        }
+
+                    }
+                }
+                
             }
             catch (Exception ex)
             {
                 //Mensaje de error en la insercion de datos
-                MessageBox.Show(ex.ToString());               
+                MessageBox.Show(ex.ToString());
                 //Cambio de color de la fila del DataGridView cuya insercion arrojo una excepcion
 
             }
@@ -1260,8 +1282,16 @@ namespace MigradorXls
                     var db = DBConn.Instance;
                     var col = db.Collection<Tipos>();
                     dbcmd.Parameters[30].Value = col.Find(x => x.tipo == ROW.Cells["tipo de Articulo"].Value.ToString().Replace(" ", string.Empty)).FirstOrDefault().codigo; //TIPO DE ARTICULO                   
-                    dbcmd.Parameters[31].Value = 0; //COSTO
-                    dbcmd.Parameters[32].Value = 0; //COSTO PROMEDIO
+                    if(Convert.ToDouble(ROW.Cells["costo"].Value) > 0 && Convert.ToDouble(ROW.Cells["%utilidad1"].Value) > 0 && Convert.ToDouble(ROW.Cells["existencia"].Value) == 0)
+                    {
+                        dbcmd.Parameters[31].Value = ROW.Cells["costo"].Value; //COSTO
+                        dbcmd.Parameters[32].Value = ROW.Cells["costo promedio"].Value; //COSTO PROMEDIO
+                    }else
+                    {
+                        dbcmd.Parameters[31].Value = 0; //COSTO
+                        dbcmd.Parameters[32].Value = 0; //COSTO PROMEDIO
+                    }
+                    
                     dbcmd.Parameters[33].Value = 0; //COSTO ANTERIOR    
                     dbcmd.Parameters[34].Value = 0; //COSTO REPOSICION
                     dbcmd.Parameters[35].Value = 0; //MEDIDA PESO
@@ -1457,6 +1487,7 @@ namespace MigradorXls
         {
             if (ROW.Cells["codigo"].Value != null)
             {
+               
                 string reader = "0";
                 NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn, t);
                 sql = @"select count(*) from admin.inv_art_precio where cod_articulo ='" + ROW.Cells["codigo"].Value.ToString() + "' AND cod_precio ='0" + i + "'";
@@ -1506,11 +1537,19 @@ namespace MigradorXls
                     dbcmd.Parameters[1].Value = "1";
                     dbcmd.Parameters[2].Value = ROW.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
                     dbcmd.Parameters[3].Value = ROW.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
-                    dbcmd.Parameters[4].Value = "0" + i;
+                    dbcmd.Parameters[4].Value = "0" + (i+1);
                     dbcmd.Parameters[5].Value = ROW.Cells["descripcion del producto"].Value;
                     dbcmd.Parameters[6].Value = ROW.Cells["descripcion del producto"].Value;
-                    dbcmd.Parameters[7].Value = 0;
-                    dbcmd.Parameters[8].Value = 0;
+                    if (Convert.ToDouble(ROW.Cells["costo"].Value) > 0 && arrayPU[i] > 0 && Convert.ToDouble(ROW.Cells["existencia"].Value) == 0)
+                    {
+                        dbcmd.Parameters[7].Value = preciofinanciero(Convert.ToDouble(ROW.Cells["costo"].Value), arrayPU[i]);
+                        dbcmd.Parameters[8].Value = Convert.ToDouble(dbcmd.Parameters[7].Value) - Convert.ToDouble(ROW.Cells["costo"].Value);
+                    }else
+                    {
+                        dbcmd.Parameters[7].Value = 0;
+                        dbcmd.Parameters[8].Value = 0;
+                    }
+                        
                     dbcmd.Parameters[9].Value = false;
                     dbcmd.Parameters[10].Value = 0;
                     dbcmd.Parameters[11].Value = false;
@@ -1520,7 +1559,7 @@ namespace MigradorXls
                     dbcmd.Parameters[15].Value = "INNOVA";
                     dbcmd.Parameters[16].Value = 1;
                     dbcmd.Parameters[17].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
-                    dbcmd.Parameters[18].Value = arrayPU[i];
+                    dbcmd.Parameters[18].Value = porcUtilidad(arrayPU[i]);
                     dbcmd.Parameters[19].Value = 0;
                     dbcmd.Parameters[20].Value = 0;
 
@@ -1870,39 +1909,51 @@ namespace MigradorXls
                 {
                     if (ROW2.Cells["codigo"].Value != null)
                     {
-                            
-                            item++;
-                            sql = @"INSERT INTO admin.int_ajuste_precio_det(org_hijo,doc,cod_alterno,cod_articulo,
+                        try
+                        {
+                            if (ROW2.Cells["existencia"].Value.ToString().Replace(" ", string.Empty) != "0")
+                            {
+
+                                item++;
+                                sql = @"INSERT INTO admin.int_ajuste_precio_det(org_hijo,doc,cod_alterno,cod_articulo,
                         costo,costo_promedio,fecha,tipo_ajuste,item, migrado) VALUES(@org_hijo,@doc,
                         @cod_alterno,@cod_articulo,@costo,@costo_promedio,@fecha,@tipo_ajuste,@item,@migrado)";
-                            dbcmd = new NpgsqlCommand(sql, conn);
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@org_hijo", NpgsqlDbType.Varchar));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@doc", NpgsqlDbType.Bigint));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@cod_alterno", NpgsqlDbType.Varchar));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@cod_articulo", NpgsqlDbType.Varchar));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@costo", NpgsqlDbType.Double));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@costo_promedio", NpgsqlDbType.Double));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@fecha", NpgsqlDbType.Date));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_ajuste", NpgsqlDbType.Integer));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@item", NpgsqlDbType.Integer));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
+                                dbcmd = new NpgsqlCommand(sql, conn);
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@org_hijo", NpgsqlDbType.Varchar));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@doc", NpgsqlDbType.Bigint));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@cod_alterno", NpgsqlDbType.Varchar));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@cod_articulo", NpgsqlDbType.Varchar));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@costo", NpgsqlDbType.Double));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@costo_promedio", NpgsqlDbType.Double));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@fecha", NpgsqlDbType.Date));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_ajuste", NpgsqlDbType.Integer));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@item", NpgsqlDbType.Integer));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
 
-                            dbcmd.Prepare();
+                                dbcmd.Prepare();
 
-                            dbcmd.Parameters[0].Value = Globals.org;
-                            dbcmd.Parameters[1].Value = Convert.ToInt64(reader);
-                            dbcmd.Parameters[2].Value = ROW2.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
-                            dbcmd.Parameters[3].Value = ROW2.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
-                            dbcmd.Parameters[4].Value = ROW2.Cells["costo"].Value;
-                            dbcmd.Parameters[5].Value = ROW2.Cells["costo promedio"].Value;
-                            dbcmd.Parameters[6].Value = DateTime.Now;
-                            dbcmd.Parameters[7].Value = 1;
-                            dbcmd.Parameters[8].Value = item;
-                            dbcmd.Parameters[9].Value = true;
+                                dbcmd.Parameters[0].Value = Globals.org;
+                                dbcmd.Parameters[1].Value = Convert.ToInt64(reader);
+                                dbcmd.Parameters[2].Value = ROW2.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
+                                dbcmd.Parameters[3].Value = ROW2.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
+                                dbcmd.Parameters[4].Value = ROW2.Cells["costo"].Value;
+                                dbcmd.Parameters[5].Value = ROW2.Cells["costo promedio"].Value;
+                                dbcmd.Parameters[6].Value = DateTime.Now;
+                                dbcmd.Parameters[7].Value = 1;
+                                dbcmd.Parameters[8].Value = item;
+                                dbcmd.Parameters[9].Value = true;
 
-                            count += dbcmd.ExecuteNonQuery();
-                        
-                        
+                                count += dbcmd.ExecuteNonQuery();
+                            }
+                        }catch(NpgsqlException ex)
+                        {
+                            MessageBox.Show(ex.Message);
+                            var db = DBConn.Instance;
+                            var col = db.Collection<Errores>();
+                            ROW2.Cells["Error"].Value = col.Find(x => x.codigo == ex.Code.ToString()).FirstOrDefault().Desc;
+                            ROW2.DefaultCellStyle.BackColor = Color.Red;
+                            count = 0;
+                        }
                     }
                 }
                 item = 0;
@@ -1954,11 +2005,14 @@ namespace MigradorXls
                 reader = dbcmd.ExecuteScalar().ToString();
                 foreach (DataGridViewRow ROW2 in dataGridView1.Rows)
                 {
-                    if (ROW2.Cells["codigo"].Value != null)
+                    if (ROW2.Cells["codigo"].Value != null )
                     {
-                       
-                            item++;
-                            sql = @"INSERT INTO admin.int_cargo_det(org_hijo, doc, item, cod_alterno,
+                        try
+                        {
+                            if (ROW2.Cells["existencia"].Value.ToString().Replace(" ", string.Empty) != "0")
+                            {
+                                item++;
+                                sql = @"INSERT INTO admin.int_cargo_det(org_hijo, doc, item, cod_alterno,
                                     cod_articulo,descri, cantidad, existencia, existencia_anterior,
                                     costo_anterior, costo_promedio_ant, costo_promedio, cod_dep, costo, total, 
                                     precio_utilidad, descorta, tipo_opera, reg_estatus, tipo_ajuste,
@@ -1967,58 +2021,70 @@ namespace MigradorXls
                                     @costo_anterior, @costo_promedio_ant, @costo_promedio, @cod_dep, @costo, @total, 
                                     @precio_utilidad, @descorta, @tipo_opera, @reg_estatus, @tipo_ajuste,
                                     @tipo_documento,@migrado)";
-                            dbcmd = new NpgsqlCommand(sql, conn);
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@org_hijo", NpgsqlDbType.Varchar));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@doc", NpgsqlDbType.Bigint));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@item", NpgsqlDbType.Integer));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@cod_alterno", NpgsqlDbType.Varchar));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@cod_articulo", NpgsqlDbType.Varchar));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@descri", NpgsqlDbType.Varchar));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@cantidad", NpgsqlDbType.Double));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@existencia", NpgsqlDbType.Double));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@existencia_anterior", NpgsqlDbType.Double));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@costo_anterior", NpgsqlDbType.Double));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@costo_promedio_ant", NpgsqlDbType.Double));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@costo_promedio", NpgsqlDbType.Double));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@cod_dep", NpgsqlDbType.Varchar));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@costo", NpgsqlDbType.Double));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@total", NpgsqlDbType.Double));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@precio_utilidad", NpgsqlDbType.Boolean));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@descorta", NpgsqlDbType.Varchar));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_opera", NpgsqlDbType.Integer));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@reg_estatus", NpgsqlDbType.Integer));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_ajuste", NpgsqlDbType.Integer));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_documento", NpgsqlDbType.Integer));
-                            dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
+                                dbcmd = new NpgsqlCommand(sql, conn);
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@org_hijo", NpgsqlDbType.Varchar));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@doc", NpgsqlDbType.Bigint));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@item", NpgsqlDbType.Integer));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@cod_alterno", NpgsqlDbType.Varchar));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@cod_articulo", NpgsqlDbType.Varchar));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@descri", NpgsqlDbType.Varchar));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@cantidad", NpgsqlDbType.Double));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@existencia", NpgsqlDbType.Double));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@existencia_anterior", NpgsqlDbType.Double));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@costo_anterior", NpgsqlDbType.Double));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@costo_promedio_ant", NpgsqlDbType.Double));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@costo_promedio", NpgsqlDbType.Double));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@cod_dep", NpgsqlDbType.Varchar));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@costo", NpgsqlDbType.Double));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@total", NpgsqlDbType.Double));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@precio_utilidad", NpgsqlDbType.Boolean));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@descorta", NpgsqlDbType.Varchar));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_opera", NpgsqlDbType.Integer));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@reg_estatus", NpgsqlDbType.Integer));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_ajuste", NpgsqlDbType.Integer));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_documento", NpgsqlDbType.Integer));
+                                dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
 
-                            dbcmd.Prepare();
+                                dbcmd.Prepare();
 
-                            dbcmd.Parameters[0].Value = Globals.org;
-                            dbcmd.Parameters[1].Value = Convert.ToInt64(reader);
-                            dbcmd.Parameters[2].Value = item;
-                            dbcmd.Parameters[3].Value = ROW2.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
-                            dbcmd.Parameters[4].Value = ROW2.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
-                            dbcmd.Parameters[5].Value = ROW2.Cells["descripcion del producto"].Value;
-                            dbcmd.Parameters[6].Value = ROW2.Cells["existencia"].Value;
-                            dbcmd.Parameters[7].Value = ROW2.Cells["existencia"].Value;
-                            dbcmd.Parameters[8].Value = 0;
-                            dbcmd.Parameters[9].Value = 0;
-                            dbcmd.Parameters[10].Value = 0;
-                            dbcmd.Parameters[11].Value = 0;
-                            dbcmd.Parameters[12].Value = ROW2.Cells["codigo deposito"].Value.ToString().Replace(" ", string.Empty);
-                            dbcmd.Parameters[13].Value = ROW2.Cells["costo"].Value;
-                            dbcmd.Parameters[14].Value = ((double)ROW2.Cells["costo"].Value * (double)ROW2.Cells["existencia"].Value);
-                            dbcmd.Parameters[15].Value = false;
-                            dbcmd.Parameters[16].Value = ROW2.Cells["descripcion del producto"].Value;
-                            dbcmd.Parameters[17].Value = 28;
-                            dbcmd.Parameters[18].Value = 1;
-                            dbcmd.Parameters[19].Value = 1;
-                            dbcmd.Parameters[20].Value = 10;
-                            dbcmd.Parameters[21].Value = true;
+                                dbcmd.Parameters[0].Value = Globals.org;
+                                dbcmd.Parameters[1].Value = Convert.ToInt64(reader);
+                                dbcmd.Parameters[2].Value = item;
+                                dbcmd.Parameters[3].Value = ROW2.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
+                                dbcmd.Parameters[4].Value = ROW2.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
+                                dbcmd.Parameters[5].Value = ROW2.Cells["descripcion del producto"].Value;
+                                dbcmd.Parameters[6].Value = ROW2.Cells["existencia"].Value;
+                                dbcmd.Parameters[7].Value = ROW2.Cells["existencia"].Value;
+                                dbcmd.Parameters[8].Value = 0;
+                                dbcmd.Parameters[9].Value = 0;
+                                dbcmd.Parameters[10].Value = 0;
+                                dbcmd.Parameters[11].Value = ROW2.Cells["costo promedio"].Value;
+                                dbcmd.Parameters[12].Value = ROW2.Cells["codigo deposito"].Value.ToString().Replace(" ", string.Empty);
+                                dbcmd.Parameters[13].Value = ROW2.Cells["costo promedio"].Value;
+                                dbcmd.Parameters[14].Value = ((double)ROW2.Cells["costo"].Value * (double)ROW2.Cells["existencia"].Value);
+                                dbcmd.Parameters[15].Value = false;
+                                dbcmd.Parameters[16].Value = ROW2.Cells["descripcion del producto"].Value;
+                                dbcmd.Parameters[17].Value = 28;
+                                dbcmd.Parameters[18].Value = 1;
+                                dbcmd.Parameters[19].Value = 1;
+                                dbcmd.Parameters[20].Value = 10;
+                                dbcmd.Parameters[21].Value = true;
 
-                            count += dbcmd.ExecuteNonQuery();
-                       
-                        
+                                count += dbcmd.ExecuteNonQuery();
+                            }
+
+                        }
+                        catch (NpgsqlException ex)
+                        {
+                            MessageBox.Show(ex.Message);
+                            var db = DBConn.Instance;
+                            var col = db.Collection<Errores>();
+                            ROW2.Cells["Error"].Value = col.Find(x => x.codigo == ex.Code.ToString()).FirstOrDefault().Desc;
+                            ROW2.DefaultCellStyle.BackColor = Color.Red;
+                            count = 0;
+                        }
+
+
                     }
                 }
             }
@@ -2375,8 +2441,42 @@ namespace MigradorXls
             }
 
         }
+        private void callbackUpdateArt(NpgsqlConnection conn, DataGridViewRow ROW2, NpgsqlTransaction t)
+        {
+            if (ROW2.Cells["codigo"].Value != null)
+            {
+                try
+                {
+                    if (ROW2.Cells["existencia"].Value.ToString().Replace(" ", string.Empty) != "0")
+                    {
+                        item++;
+                        sql = @"UPDATE admin.inv_art SET costo=@costo WHERE codigo=@codigo";
+                        NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn);
+                        dbcmd.Parameters.Add(new NpgsqlParameter("@costo", NpgsqlDbType.Double));
+                        dbcmd.Parameters.Add(new NpgsqlParameter("@codigo", NpgsqlDbType.Varchar));
+                        dbcmd.Prepare();
+                        dbcmd.Parameters[0].Value = ROW2.Cells["costo"].Value;
+                        dbcmd.Parameters[1].Value = ROW2.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
 
-        
+                        dbcmd.ExecuteNonQuery();
+                    }
+
+                }
+                catch (NpgsqlException ex)
+                {
+                    MessageBox.Show(ex.Message);
+                    var db = DBConn.Instance;
+                    var col = db.Collection<Errores>();
+                    ROW2.Cells["Error"].Value = col.Find(x => x.codigo == ex.Code.ToString()).FirstOrDefault().Desc;
+                    ROW2.DefaultCellStyle.BackColor = Color.Red;
+                    count = 0;
+                    
+                }
+
+
+            }
+    }
+
         #endregion
 
         #region Metodos Migracion Nomina
@@ -2468,13 +2568,25 @@ namespace MigradorXls
             if (!string.IsNullOrEmpty(myDate) && !string.IsNullOrWhiteSpace(myDate))
             {
                 DateTime dt;
-                var formatStrings = new string[] { "dd/MM/yyyy h:mm:ss", "dd/MM/yyyy", "d/M/yyyy" };
+                var formatStrings = new string[] { "dd/MM/yyyy h:mm:ss","dd/MM/yyyy", "d/M/yyyy",
+                    "dd.MM.yyyy h:mm:ss","dd.MM.yyyy", "d.M.yyyy",
+                    "dd-MM-yyyy h:mm:ss", "dd-MM-yyyy", "d-M-yyyy" };
                 dt = DateTime.ParseExact(myDate, formatStrings, new CultureInfo("en-US"), DateTimeStyles.None);
                 return dt;
             }
             return null;
         }
 
+        public double preciofinanciero (double costo, double utilidad)
+        {
+            return (costo/(100-utilidad))*100;
+        }
+        public double porcUtilidad(double porc)
+        {
+            if (porc == 100 || porc < 0) return 0;
+            else return porc;
+            
+        }
         public bool convertBoolean(object obj)
         {
             string text = Convert.ToString(obj);

@@ -36,51 +36,70 @@ namespace MigradorXls
 
         private void button2_Click(object sender, EventArgs e)
         {
-                MigrarZonaBD();            
+            MigrarData();            
         }
-
-        private void MigrarZonaBD()
+        private void MigrarData()
+        {
+            int i = 0;
+            int lenght = TAB.Rows.Count;
+            TAB.Clear();
+            NpgsqlConnection conn = new NpgsqlConnection(connectionString);
+            switch (comboBox2.Text)
+            {
+                case "Zonas":
+                    {
+                       
+                        while (i < lenght)
+                        {
+                            callbackInsertZona(conn, TAB, i);
+                            i++;
+                        }
+                        break;
+                    }
+                case "Moneda":
+                    {
+                     
+                        while (i < lenght)
+                        {
+                            callbackInsertMoneda(conn, TAB, i);
+                            i++;
+                        }
+                        break;
+                    }
+                case "Talento":
+                    {
+                      
+                        while (i < lenght)
+                        {
+                            callbackInsertVendedores(conn, TAB, i);
+                        }
+                        break;
+                    }
+            }
+        }
+        private void ExtractA2Table()
         {
             try
             {
                 string txtConStr = "DSN=conDBisam";
-                //path : The complete path to the folder, where the DBISAM Tables 
-                //(i.e. *.dat files) are present.
                 OdbcConnection objODBCCon = new OdbcConnection(txtConStr);
                 objODBCCon.Open();
-                NpgsqlConnection conn = new NpgsqlConnection(connectionString);
-                int i = 0;
-                int lenght = TAB.Rows.Count;
-                TAB.Clear();
                 switch (comboBox2.Text)
                 {
                     case "Zonas":
                         {
                             A2Zonas(objODBCCon);
-                            while (i < lenght)
-                            {
-                                callbackInsertZona(conn, TAB, i);
-                                i++;
-                            }
+                            dataGridView1.DataSource = TAB;
                             break;
                         }
                     case "Moneda":
                         {
                             A2Moneda(objODBCCon);
-                            while (i < lenght)
-                            {
-                                callbackInsertMoneda(conn, TAB, i);
-                                i++;
-                            }
                             break;
                         }
                     case "Talento":
                         {
                             A2Vendedores(objODBCCon);
-                            while (i < lenght)
-                            {
-                                callbackInsertVendedores(conn, TAB, i);
-                            }
                             break;
                         }
                 }
@@ -285,12 +304,7 @@ namespace MigradorXls
             conn.Close();
 
         }
-
-        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            button1.Enabled = true;
-        }
-
+        
         private void button1_Click(object sender, EventArgs e)
         {
 
@@ -300,6 +314,12 @@ namespace MigradorXls
                 file = folderBrowserDialog1.SelectedPath;
                 button2.Enabled = true;
             }
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            button2.Enabled = true;
+            ExtractA2Table();
         }
     }
 }
