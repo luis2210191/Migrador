@@ -173,6 +173,16 @@ namespace MigradorXls.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap migrar_bases_de_datos_gris {
+            get {
+                object obj = ResourceManager.GetObject("migrar bases de datos gris", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap migrar_xls {
             get {
                 object obj = ResourceManager.GetObject("migrar xls", resourceCulture);
@@ -206,6 +216,16 @@ namespace MigradorXls.Properties {
         internal static System.Drawing.Bitmap reportes {
             get {
                 object obj = ResourceManager.GetObject("reportes", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap reportes_gris {
+            get {
+                object obj = ResourceManager.GetObject("reportes gris", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

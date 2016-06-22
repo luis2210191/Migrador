@@ -121,9 +121,6 @@
   <data name="migrarc" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\migrarc1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="sellecionar base de datos1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\sellecionar base de datos1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="plainicon.com-40238-512px" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\plainicon.com-40238-512px.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -154,14 +151,23 @@
   <data name="reportes" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\reportes.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="ajustes de precios" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ajustes de precios.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="migrar bases de datos gris" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\migrar bases de datos gris.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="azul" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\azul.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="salir" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\salir.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="ajustes de precios" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ajustes de precios.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="logo_trans" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\logo_trans.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="sellecionar base de datos1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\sellecionar base de datos1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="seleccionarc" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\seleccionarc1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -175,7 +181,7 @@
   <data name="seleccionar" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\seleccionar.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="logo_trans" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\logo_trans.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="reportes gris" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\reportes gris.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

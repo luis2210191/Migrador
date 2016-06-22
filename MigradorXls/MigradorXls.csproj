@@ -232,6 +232,7 @@
     <None Include="Resources\migrar bases de datos.png" />
     <None Include="Resources\innova back rest logo.png" />
     <None Include="Resources\logo_trans.png" />
+    <None Include="Resources\migrar bases de datos gris.png" />
     <Content Include="Resources\migrarc.png" />
     <None Include="Resources\sellecionar base de datos1.png" />
     <None Include="Resources\sellecionar base de datos.png" />
@@ -240,6 +241,7 @@
     <None Include="Resources\plainicon.com-40238-512px.png" />
     <None Include="Resources\reportes.png" />
     <None Include="Resources\salir.png" />
+    <None Include="Resources\reportes gris.png" />
     <Content Include="Resources\seleccionarc.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
