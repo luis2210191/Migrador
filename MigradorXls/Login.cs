@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Npgsql;
 using NpgsqlTypes;
+using LiteDB;
 
 namespace MigradorXls
 {
@@ -27,8 +28,6 @@ namespace MigradorXls
             SetStyle(ControlStyles.DoubleBuffer, true);
             DialogResult = DialogResult.Cancel;
             label3.Text += Application.ProductVersion;
-
-            
             
         }
 
@@ -44,7 +43,6 @@ namespace MigradorXls
                     string userId = textBox1.Text;
                     string psw = textBox2.Text;
                     object count = null;
-
                     String txtxor = xorMsg(psw);
                     psw = Base64Encode(txtxor);
                     NpgsqlConnection conn = new NpgsqlConnection(connectionString);
@@ -117,6 +115,15 @@ namespace MigradorXls
         {
             DBConnection conn = new DBConnection();
             conn.ShowDialog();
+        }
+
+        private void Login_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.Control && e.KeyCode == Keys.B)
+            {
+                DBConnection conn = new DBConnection();
+                conn.ShowDialog();
+            }
         }
     }
 }

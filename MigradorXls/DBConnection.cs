@@ -76,8 +76,8 @@ public static class Globals
     public static String usuario = "";
     public static String pass = "";
     public static int port = 5432;
-    public static String Host = "192.168.1.253";
-    public static String DB = "CLAVES COPIA";
+    public static String Host = "";
+    public static String DB = "";
     public static String org = "";
     public static String userid = "";
     public static String connectionstring = "";

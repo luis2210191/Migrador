@@ -43,12 +43,12 @@ namespace MigradorXls
         List<Errores> listaErr = new List<Errores>();
         List<admin> listaAdmin = new List<admin>();
         List<payroll> listaPayRoll = new List<payroll>();
+        DataConvert dt = new DataConvert();
         public Main()
         {
 
             InitializeComponent();
-           
-            //Asignacion de data source y propiedades de visibilidad de campo tipo_cont
+            //Asignacion de data source 
             sql = @"SELECT org_hijo from admin.cfg_org";
             //Abriendo la coneccion con npgsql
             connectionString = @"Host=" + Globals.Host + ";port=" + Globals.port + ";Database=" + Globals.DB + ";User ID=" + Globals.usuario + ";Password=" + Globals.pass + ";";
@@ -85,6 +85,7 @@ namespace MigradorXls
                         throw new Exception("Error: No se pudo determinar el nombre de la Hoja de Trabajo.");
                     }
                     string firstSheetName = dbSchema.Rows[0]["TABLE_NAME"].ToString();
+                    //Consulta al formato en excel
                     MyCommand = new System.Data.OleDb.OleDbDataAdapter("select * from [" + firstSheetName + "]", Myconnetion);
                     MyCommand.TableMappings.Add("Table", "TestTable");
 
@@ -108,6 +109,7 @@ namespace MigradorXls
                 }
                 catch (Exception ex)
                 {
+                    //Captura de excepcion durante las acciones del button1_click
                     MessageBox.Show("Se produjo un error al cargar la informacion. Error: " + ex.Message.ToString());
                 }
             }
@@ -116,6 +118,7 @@ namespace MigradorXls
 
         private void button2_Click(object sender, EventArgs e)
         {
+            //Asignacion de valores iniciales de variables necesarias para la migracion
             Cursor.Current = Cursors.WaitCursor;
             codInteno = 1;
             status = 0;
@@ -130,12 +133,12 @@ namespace MigradorXls
                 count = 0;
                 if (comboBox1.SelectedIndex == 5)//Articulos
                 {
-                    Exportar_Articulos();
+                    Exportar_Articulos(conn, t);
                 }
                 else if (comboBox1.SelectedIndex == 6)//Servicios
                 {
 
-                    Exportar_Servicios();
+                    Exportar_Servicios(conn, t);
 
                 }
                 else
@@ -146,6 +149,7 @@ namespace MigradorXls
                         {
                             if (radioButton1.Checked)
                             {
+                                //seleccion del metodo de migracion en base a la seleccion del combo box de tablas
                                 switch (comboBox1.SelectedIndex)
                                 {
                                     case 0:
@@ -295,7 +299,7 @@ namespace MigradorXls
                 }
                 
                 Cursor.Current = Cursors.Default;
-                MessageBox.Show(count + " Filas se almacenaron correctamente", "Atencion", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Se migraron exitosamente "+count+" registros", "Atencion", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception EX)
             {
@@ -323,14 +327,11 @@ namespace MigradorXls
         /// Array de los porcentajes de utilidad
         /// </summary>
         public double[] arrayPU;
-        private void Exportar_Servicios()
+        private void Exportar_Servicios(NpgsqlConnection conn, NpgsqlTransaction t)
         {
-            NpgsqlConnection conn = new NpgsqlConnection(connectionString);
-
-            conn.Open();
+            
             //Recorriendo el Datagridview e insertando cada valor
-            NpgsqlTransaction t = conn.BeginTransaction();
-
+           
             foreach (DataGridViewRow ROW in dataGridView1.Rows)
             {
                 if (ROW.Cells["codigo"].Value != null)
@@ -357,6 +358,7 @@ namespace MigradorXls
                         {
                             callbackInsertServicioPrecio(conn, ROW, t, i);
                         }
+                        codInteno++;
                     }
                     catch (NpgsqlException ex)
                     {
@@ -378,22 +380,17 @@ namespace MigradorXls
                 }
 
             }
-            t.Commit();
-            conn.Close();
+            
         }
-        private void Exportar_Articulos()
+        private void Exportar_Articulos(NpgsqlConnection conn, NpgsqlTransaction t)
         {
             cantidad_items = 0;
             nro_items = 0;
             item = 0;
             bool FAIL = false;
-            //Abriendo la coneccion con npgsql
-            NpgsqlConnection conn = new NpgsqlConnection(connectionString);
-            conn.Open();
+            
             //Recorriendo el Datagridview e insertando cada valor
-
-            NpgsqlTransaction t = conn.BeginTransaction();
-
+            
             foreach (DataGridViewRow ROW in dataGridView1.Rows)
             {
                 if (ROW.Cells["codigo"].Value != null)
@@ -423,7 +420,7 @@ namespace MigradorXls
                         {
                             callbackInsertArticuloPrecio(conn, ROW, t, i);
                         }
-
+                        codInteno++;
 
                     }
                     catch (NpgsqlException ex)
@@ -435,9 +432,6 @@ namespace MigradorXls
                             var col = db.Collection<Errores>();
                             ROW.Cells["Error"].Value = col.Find(x => x.codigo == ex.Code.ToString()).FirstOrDefault().Desc;
                             ROW.DefaultCellStyle.BackColor = Color.Red;
-
-
-
                             count = 0;
                             FAIL = true;
                         }
@@ -482,8 +476,6 @@ namespace MigradorXls
 
             }
 
-            t.Commit();
-            conn.Close();
         }
         private void callbackInsertZona(NpgsqlConnection conn, DataGridViewRow ROW, NpgsqlTransaction t)
         {
@@ -523,7 +515,7 @@ namespace MigradorXls
                 dbcmd.Parameters[8].Value = "INNOVA";
                 dbcmd.Parameters[9].Value = "INNOVA";
                 dbcmd.Parameters[10].Value = 1;
-                dbcmd.Parameters[11].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[11].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                 dbcmd.Parameters[12].Value = true;
 
                 count += dbcmd.ExecuteNonQuery();
@@ -587,7 +579,7 @@ namespace MigradorXls
                     dbcmd.Parameters[4].Value = "INNOVA";
                     dbcmd.Parameters[5].Value = "INNOVA";
                     dbcmd.Parameters[6].Value = 1;
-                    dbcmd.Parameters[7].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                    dbcmd.Parameters[7].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                     dbcmd.Parameters[8].Value = true;
 
                     count += dbcmd.ExecuteNonQuery();
@@ -649,7 +641,7 @@ namespace MigradorXls
                     dbcmd.Parameters[3].Value = "INNOVA";
                     dbcmd.Parameters[4].Value = "INNOVA";
                     dbcmd.Parameters[5].Value = 1;
-                    dbcmd.Parameters[6].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                    dbcmd.Parameters[6].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                     dbcmd.Parameters[7].Value = true;
 
                     count += dbcmd.ExecuteNonQuery();
@@ -694,7 +686,7 @@ namespace MigradorXls
                 dbcmd.Parameters[8].Value = "INNOVA";
                 dbcmd.Parameters[9].Value = "INNOVA";
                 dbcmd.Parameters[10].Value = 1;
-                dbcmd.Parameters[11].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[11].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                 dbcmd.Parameters[12].Value = true;
 
                 count += dbcmd.ExecuteNonQuery();
@@ -737,7 +729,7 @@ namespace MigradorXls
                 dbcmd.Parameters[7].Value = ROW.Cells["correo"].Value;
                 dbcmd.Parameters[8].Value = ROW.Cells["direccion"].Value;
                 dbcmd.Parameters[9].Value = ROW.Cells["fecha_nacimiento"].Value;
-                dbcmd.Parameters[10].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[10].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                 dbcmd.Parameters[11].Value = true;
 
                 count += dbcmd.ExecuteNonQuery();
@@ -800,15 +792,15 @@ namespace MigradorXls
                 dbcmd.Parameters[2].Value = ROW.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
                 dbcmd.Parameters[3].Value = ROW.Cells["cedula"].Value;
                 dbcmd.Parameters[4].Value = ROW.Cells["nombres"].Value;
-                dbcmd.Parameters[5].Value = convertBoolean(ROW.Cells["vendedor"].Value);
-                dbcmd.Parameters[6].Value = convertBoolean(ROW.Cells["cobrador"].Value);
-                dbcmd.Parameters[7].Value = convertBoolean(ROW.Cells["servidor"].Value);
-                dbcmd.Parameters[8].Value = convertBoolean(ROW.Cells["despachador"].Value);
-                dbcmd.Parameters[9].Value = ExtractDate(ROW.Cells["fecha nac"].Value.ToString());
+                dbcmd.Parameters[5].Value = dt.convertBoolean(ROW.Cells["vendedor"].Value);
+                dbcmd.Parameters[6].Value = dt.convertBoolean(ROW.Cells["cobrador"].Value);
+                dbcmd.Parameters[7].Value = dt.convertBoolean(ROW.Cells["servidor"].Value);
+                dbcmd.Parameters[8].Value = dt.convertBoolean(ROW.Cells["despachador"].Value);
+                dbcmd.Parameters[9].Value = dt.ExtractDate(ROW.Cells["fecha nac"].Value.ToString());
                 dbcmd.Parameters[10].Value = "INNOVA";
                 dbcmd.Parameters[11].Value = "INNOVA";
                 dbcmd.Parameters[12].Value = 1;
-                dbcmd.Parameters[13].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[13].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
 
                 var db = DBConn.Instance;
                 var col = db.Collection<Tipos>();
@@ -822,8 +814,8 @@ namespace MigradorXls
                 dbcmd.Parameters[21].Value = ROW.Cells["direccion"].Value;
                 dbcmd.Parameters[22].Value = ROW.Cells["porc ret iva"].Value;
                 dbcmd.Parameters[23].Value = ROW.Cells["departamento"].Value;
-                dbcmd.Parameters[24].Value = ExtractDate(ROW.Cells["fecha vcto rif"].Value.ToString());
-                dbcmd.Parameters[25].Value = ExtractDate(ROW.Cells["fecha de ingreso"].Value.ToString());
+                dbcmd.Parameters[24].Value = dt.ExtractDate(ROW.Cells["fecha vcto rif"].Value.ToString());
+                dbcmd.Parameters[25].Value = dt.ExtractDate(ROW.Cells["fecha de ingreso"].Value.ToString());
                 dbcmd.Parameters[26].Value = "ESTA DATA FUE MIGRADA, POR FAVOR VERIFICAR LOS DATOS";
 
                 count += dbcmd.ExecuteNonQuery();
@@ -840,13 +832,13 @@ namespace MigradorXls
                         es_exento,es_retencion,es_monto,monto_min,monto_max,monto_cred_max,monto_acum,
                         pri_vmonto,ult_vmonto,ult_pmonto,pago_max,pago_adel,longitud, latitud, altitud,
                         pago_prom,monto_cred_min,saldo, reg_usu_cc,reg_usu_cu,reg_estatus,disponible, 
-                        migrado,es_datos,es_vip,es_pronto, observacion, tipo_ret_iva) 
+                        migrado,es_datos,es_vip,es_pronto, observacion, tipo_ret_iva, telefono, email, nomb_persona) 
                         VALUES(@org_hijo,@cod_interno,@cli_hijo,@descri,@tipo_cont,@tipo_pers,
                         @PorcRetIva,@rif,@direc1,@descuento,@es_descuento,
                         @es_exento,@es_retencion,@es_monto,@monto_min,@monto_max,@monto_cred_max,@monto_acum,
                         @pri_vmonto,@ult_vmonto,@ult_pmonto,@pago_max,@pago_adel,@longitud,@latitud,@altitud,
                         @pago_prom,@montoCredMin,@saldo, @reg_usu_cc,@reg_usu_cu,@reg_estatus,@disponible, 
-                        @migrado, @esdatos, @esvip, @espronto, @observacion, @tipo_ret_iva)";
+                        @migrado, @esdatos, @esvip, @espronto, @observacion, @tipo_ret_iva,@telefono,@email,@nombPersona)";
 
 
                 NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn, t);
@@ -889,6 +881,9 @@ namespace MigradorXls
                 dbcmd.Parameters.Add(new NpgsqlParameter("@espronto", NpgsqlDbType.Boolean));
                 dbcmd.Parameters.Add(new NpgsqlParameter("@observacion", NpgsqlDbType.Varchar));
                 dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_ret_iva", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@telefono", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@email", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@nombPersona", NpgsqlDbType.Varchar));
 
 
                 dbcmd.Prepare();
@@ -921,7 +916,7 @@ namespace MigradorXls
                 dbcmd.Parameters[23].Value = "INNOVA";
                 dbcmd.Parameters[24].Value = "INNOVA";
                 dbcmd.Parameters[25].Value = 1;
-                dbcmd.Parameters[26].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[26].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                 dbcmd.Parameters[27].Value = true;
                 if (ROW.Cells["tipo de contribuyente"].Value.ToString().Replace(" ", string.Empty) == "Esp")
                 {
@@ -943,9 +938,12 @@ namespace MigradorXls
                 dbcmd.Parameters[35].Value = true;
                 dbcmd.Parameters[36].Value = true;
                 dbcmd.Parameters[37].Value = "ESTA DATA FUE MIGRADA, POR FAVOR VERIFICAR LOS DATOS";
+                dbcmd.Parameters[39].Value = ROW.Cells["telefono"].Value;
+                dbcmd.Parameters[40].Value = ROW.Cells["email"].Value;
+                dbcmd.Parameters[41].Value = ROW.Cells["nombre de representante"].Value;
                 count += dbcmd.ExecuteNonQuery();
             }
-            codInteno++;
+            
         }
 
         private void callbackInsertDeposito(NpgsqlConnection conn, DataGridViewRow ROW, NpgsqlTransaction t)
@@ -996,7 +994,7 @@ namespace MigradorXls
                 dbcmd.Parameters[9].Value = "INNOVA";
                 dbcmd.Parameters[10].Value = "INNOVA";
                 dbcmd.Parameters[11].Value = 1;
-                dbcmd.Parameters[12].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[12].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                 count += dbcmd.ExecuteNonQuery();
             }
         }
@@ -1038,7 +1036,7 @@ namespace MigradorXls
                 dbcmd.Parameters[4].Value = "INNOVA";
                 dbcmd.Parameters[5].Value = "INNOVA";
                 dbcmd.Parameters[6].Value = 1;
-                dbcmd.Parameters[7].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[7].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                 count += dbcmd.ExecuteNonQuery();
             }
 
@@ -1079,7 +1077,7 @@ namespace MigradorXls
                 dbcmd.Parameters[3].Value = ROW.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
                 dbcmd.Parameters[4].Value = "INNOVA";
                 dbcmd.Parameters[5].Value = 1;
-                dbcmd.Parameters[6].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[6].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                 count += dbcmd.ExecuteNonQuery();
             }
 
@@ -1114,7 +1112,7 @@ namespace MigradorXls
                 dbcmd.Parameters[1].Value = ROW.Cells["codigo categoria"].Value.ToString().Replace(" ", string.Empty);
                 dbcmd.Parameters[2].Value = ROW.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
                 dbcmd.Parameters[3].Value = 1;
-                dbcmd.Parameters[4].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[4].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                 count += dbcmd.ExecuteNonQuery();
             }
 
@@ -1156,7 +1154,7 @@ namespace MigradorXls
                 dbcmd.Parameters[4].Value = "INNOVA";
                 dbcmd.Parameters[5].Value = "INNOVA";
                 dbcmd.Parameters[6].Value = 1;
-                dbcmd.Parameters[7].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[7].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                 count += dbcmd.ExecuteNonQuery();
             }
 
@@ -1184,7 +1182,7 @@ namespace MigradorXls
                         tipo_art,costo,costo_pro,costo_ant,costo_rep,med_peso, 
                         med_alto, med_ancho, med_largo ,med_volumen,
                         reg_usu_cc,reg_usu_cu,reg_estatus,disponible,cod_medida,
-                        costo_pro_ant,cantidad_ant,precio,migrado,es_credito_fiscal) 
+                        costo_pro_ant,cantidad_ant,precio,migrado,es_credito_fiscal, tipo_origen, tipo_costo) 
                         VALUES(@org_hijo , @codInterno, @codigo, @descri,
                         @cantidad, @cantCompro, @cantPedido , @cantConsumo, 
                         @cantVenta, @cantMax, @cantMin, @cantFalla , @cantRepos , @cantBulto, 
@@ -1193,7 +1191,8 @@ namespace MigradorXls
                         @esExonerado, @esUnico, @esDecimal, @esUnidad, @esParte , 
                         @tipoArt, @costo,@costoPro,@costoAnt,@costoRep, @medPeso , @medAlto ,
                         @medAncho, @medLargo, @medVolumen,@reg_usu_cc, @reg_usu_cu, @regEstatus, 
-                        @disponible, @codMedida,@costoProAnt, @cantidadAnt, @precio, @migrado, @esCreditoFiscal)";
+                        @disponible, @codMedida,@costoProAnt, @cantidadAnt, @precio, @migrado, 
+                        @esCreditoFiscal, @tipoOrigen,@tipoCosto)";
 
                     //            //dbcmd.CommandText = sql;
                     dbcmd = new NpgsqlCommand(sql, conn, t);
@@ -1248,6 +1247,8 @@ namespace MigradorXls
                     dbcmd.Parameters.Add(new NpgsqlParameter("@precio", NpgsqlDbType.Double));
                     dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
                     dbcmd.Parameters.Add(new NpgsqlParameter("@esCreditoFiscal", NpgsqlDbType.Boolean));
+                    dbcmd.Parameters.Add(new NpgsqlParameter("@tipoOrigen", NpgsqlDbType.Varchar));
+                    dbcmd.Parameters.Add(new NpgsqlParameter("@TipoCosto", NpgsqlDbType.Varchar));
 
                     dbcmd.Prepare();
 
@@ -1273,12 +1274,12 @@ namespace MigradorXls
                     dbcmd.Parameters[19].Value = false; //ES MEDIDA
                     dbcmd.Parameters[20].Value = false; //ES PESO
                     dbcmd.Parameters[21].Value = false; //ES OFERTA
-                    dbcmd.Parameters[22].Value = convertBoolean(ROW.Cells["Exento"].Value); //ES EXENTO
+                    dbcmd.Parameters[22].Value = dt.convertBoolean(ROW.Cells["Exento"].Value); //ES EXENTO
                     dbcmd.Parameters[23].Value = false; //ES RETENCION
                     dbcmd.Parameters[24].Value = false; //ES REGULADO
-                    dbcmd.Parameters[25].Value = convertBoolean(ROW.Cells["Exonerado"].Value);  //ES EXONERADO
+                    dbcmd.Parameters[25].Value = dt.convertBoolean(ROW.Cells["Exonerado"].Value);  //ES EXONERADO
                     dbcmd.Parameters[26].Value = false; //ES UNICO
-                    dbcmd.Parameters[27].Value = false; //ES DECIMAL
+                    dbcmd.Parameters[27].Value = true; //ES DECIMAL
                     dbcmd.Parameters[28].Value = false; //ES UNIDAD
                     dbcmd.Parameters[29].Value = false; //ES PARTE
                     var db = DBConn.Instance;
@@ -1304,13 +1305,16 @@ namespace MigradorXls
                     dbcmd.Parameters[40].Value = "INNOVA"; //USUARIO QUE REGISTRO
                     dbcmd.Parameters[41].Value = "INNOVA"; //USUARIO QUE MODIFICO
                     dbcmd.Parameters[42].Value = 1; //ESTATUS DE REGISTRO
-                    dbcmd.Parameters[43].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value); //DISPONIBLE
+                    dbcmd.Parameters[43].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value); //DISPONIBLE
                     dbcmd.Parameters[44].Value = ROW.Cells["codigo de la unidad de medida"].Value; //CODIGO MEDIDA
                     dbcmd.Parameters[45].Value = 0; //COSTO PROMEDIO ANTERIOR
                     dbcmd.Parameters[46].Value = 0; //CANTIDAD ANTERIOR
                     dbcmd.Parameters[47].Value = 0; //PRECIO
                     dbcmd.Parameters[48].Value = true;  //MIGRADO
                     dbcmd.Parameters[49].Value = false; //ES CREDITO FISCAL
+                    dbcmd.Parameters[50].Value = "10.1";  //TIPO ORIGEN
+                    dbcmd.Parameters[51].Value = "12.4"; //TIPO COSTO
+
 
 
                     count += dbcmd.ExecuteNonQuery();
@@ -1319,7 +1323,7 @@ namespace MigradorXls
                 }
 
             }
-            codInteno++;
+            
         }
 
         private void callbackInsertServicios(NpgsqlConnection conn, DataGridViewRow ROW, NpgsqlTransaction t)
@@ -1367,7 +1371,7 @@ namespace MigradorXls
                 dbcmd.Parameters[8].Value = "INNOVA"; //USUARIO QUE REGISTRO
                 dbcmd.Parameters[9].Value = "INNOVA"; //USUARIO QUE MODIFICO
                 dbcmd.Parameters[10].Value = 1; //ESTATUS DE REGISTRO
-                dbcmd.Parameters[11].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value); //DISPONIBLE
+                dbcmd.Parameters[11].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value); //DISPONIBLE
                 dbcmd.Parameters[12].Value = ROW.Cells["codigo de la unidad de medida"].Value; //CODIGO MEDIDA
                 dbcmd.Parameters[13].Value = true;  //MIGRADO
 
@@ -1375,7 +1379,7 @@ namespace MigradorXls
                 count += dbcmd.ExecuteNonQuery();
 
             }
-            codInteno++;
+            
         }
 
         private void callbackInsertServicioImpuestos(NpgsqlConnection conn, DataGridViewRow ROW, NpgsqlTransaction t, int z)
@@ -1399,7 +1403,7 @@ namespace MigradorXls
                 dbcmd.Parameters[0].Value = Globals.org;
                 dbcmd.Parameters[1].Value = ROW.Cells["codigo"].Value.ToString().Replace(" ", string.Empty);
                 dbcmd.Parameters[2].Value = ROW.Cells["cod impuesto1"].Value.ToString().Replace(" ", string.Empty); ;
-                dbcmd.Parameters[3].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[3].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                 dbcmd.Parameters[4].Value = true;
 
                 count += dbcmd.ExecuteNonQuery();
@@ -1479,7 +1483,7 @@ namespace MigradorXls
                     dbcmd.Parameters[6].Value = "INNOVA";
                     dbcmd.Parameters[7].Value = "INNOVA";
                     dbcmd.Parameters[8].Value = 1;
-                    dbcmd.Parameters[9].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                    dbcmd.Parameters[9].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
 
                     count += dbcmd.ExecuteNonQuery();
                 }
@@ -1492,7 +1496,7 @@ namespace MigradorXls
                
                 string reader = "0";
                 NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn, t);
-                sql = @"select count(*) from admin.inv_art_precio where cod_articulo ='" + ROW.Cells["codigo"].Value.ToString() + "' AND cod_precio ='0" + i + "'";
+                sql = @"select count(*) from admin.inv_art_precio where cod_articulo ='" + ROW.Cells["codigo"].Value.ToString() + "' AND cod_precio ='0" + (i+1) + "'";
                 dbcmd = new NpgsqlCommand(sql, conn);
 
                 reader = dbcmd.ExecuteScalar().ToString();
@@ -1560,7 +1564,7 @@ namespace MigradorXls
                     dbcmd.Parameters[14].Value = "INNOVA";
                     dbcmd.Parameters[15].Value = "INNOVA";
                     dbcmd.Parameters[16].Value = 1;
-                    dbcmd.Parameters[17].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                    dbcmd.Parameters[17].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                     dbcmd.Parameters[18].Value = porcUtilidad(arrayPU[i]);
                     dbcmd.Parameters[19].Value = 0;
                     dbcmd.Parameters[20].Value = 0;
@@ -1666,13 +1670,13 @@ namespace MigradorXls
                 dbcmd.Parameters[7].Value = ROW.Cells["pregunta2"].Value;
                 dbcmd.Parameters[8].Value = ROW.Cells["respuesta1"].Value;
                 dbcmd.Parameters[9].Value = ROW.Cells["respuesta2"].Value;
-                dbcmd.Parameters[10].Value = convertBoolean(ROW.Cells["perfiles"].Value);
+                dbcmd.Parameters[10].Value = dt.convertBoolean(ROW.Cells["perfiles"].Value);
                 dbcmd.Parameters[11].Value = ROW.Cells["cod_perfil"].Value;
-                dbcmd.Parameters[12].Value = convertBoolean(ROW.Cells["conectado"].Value);
+                dbcmd.Parameters[12].Value = dt.convertBoolean(ROW.Cells["conectado"].Value);
                 dbcmd.Parameters[13].Value = "INNOVA";
                 dbcmd.Parameters[14].Value = "INNOVA";
                 dbcmd.Parameters[15].Value = ROW.Cells["reg_estatus"].Value;
-                dbcmd.Parameters[16].Value = convertBoolean(ROW.Cells["disponible"].Value);
+                dbcmd.Parameters[16].Value = dt.convertBoolean(ROW.Cells["disponible"].Value);
                 dbcmd.Parameters[17].Value = true;
 
                 count += dbcmd.ExecuteNonQuery();
@@ -1687,13 +1691,13 @@ namespace MigradorXls
                         es_exento,es_retencion,es_monto,monto_min,monto_max,monto_cred,
                         pri_monto,ult_monto,rect_monto,pago_max,pago_ade,
                         pago_prom,saldo, reg_usu_cc,reg_usu_cu,reg_estatus,disponible, migrado,
-                        porc_ret_iva, observacion, tipo_ret_iva) 
+                        porc_ret_iva, observacion, tipo_ret_iva, telefono, email, nomb_persona) 
                         VALUES(@org_hijo,@cod_interno,@prov_hijo,@descri,
                         @tipo_cont,@tipo_pers,@rif,@direc1,@descuento,@es_descuento,
                         @es_exento,@es_retencion,@es_monto,@monto_min,@monto_max,@monto_cred,
                         @pri_monto,@ult_monto,@rect_monto,@pago_max,@pago_ade,
                         @pago_prom,@saldo, @reg_usu_cc,@reg_usu_cu,@reg_estatus,@disponible, 
-                        @migrado, @porcretiva, @Observacion, @tipo_ret_iva)";
+                        @migrado, @porcretiva, @Observacion, @tipo_ret_iva, @telefono,@email,@nombPersona)";
 
 
                 NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn, t);
@@ -1728,6 +1732,9 @@ namespace MigradorXls
                 dbcmd.Parameters.Add(new NpgsqlParameter("@porcretiva", NpgsqlDbType.Double));
                 dbcmd.Parameters.Add(new NpgsqlParameter("@Observacion", NpgsqlDbType.Varchar));
                 dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_ret_iva", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@telefono", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@email", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@nombPersona", NpgsqlDbType.Varchar));
 
 
                 dbcmd.Prepare();
@@ -1760,12 +1767,14 @@ namespace MigradorXls
                 dbcmd.Parameters[23].Value = "INNOVA";
                 dbcmd.Parameters[24].Value = "INNOVA";
                 dbcmd.Parameters[25].Value = 1;
-                dbcmd.Parameters[26].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[26].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                 dbcmd.Parameters[27].Value = true;
                 dbcmd.Parameters[28].Value = 75;
                 dbcmd.Parameters[29].Value = "ESTA DATA FUE MIGRADA, POR FAVOR VERIFICAR LOS DATOS";
                 dbcmd.Parameters[30].Value = "15.2";
-
+                dbcmd.Parameters[31].Value = ROW.Cells["telefono"].Value;
+                dbcmd.Parameters[32].Value = ROW.Cells["email"].Value;
+                dbcmd.Parameters[33].Value = ROW.Cells["nombre de representante"].Value;
                 count += dbcmd.ExecuteNonQuery();
             }
 
@@ -1807,7 +1816,7 @@ namespace MigradorXls
                     dbcmd.Parameters[3].Value = "INNOVA";
                     dbcmd.Parameters[4].Value = "INNOVA";
                     dbcmd.Parameters[5].Value = 1;
-                    dbcmd.Parameters[6].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                    dbcmd.Parameters[6].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                     dbcmd.Parameters[7].Value = true;
 
                     count += dbcmd.ExecuteNonQuery();
@@ -2043,7 +2052,7 @@ namespace MigradorXls
                                 dbcmd.Parameters[11].Value = ROW2.Cells["costo promedio"].Value;
                                 dbcmd.Parameters[12].Value = ROW2.Cells["codigo deposito"].Value.ToString().Replace(" ", string.Empty);
                                 dbcmd.Parameters[13].Value = ROW2.Cells["costo promedio"].Value;
-                                dbcmd.Parameters[14].Value = ((double)ROW2.Cells["costo"].Value * (double)ROW2.Cells["existencia"].Value);
+                                dbcmd.Parameters[14].Value = (Convert.ToDouble(ROW2.Cells["costo"].Value.ToString().Replace(".",",")) * (double)ROW2.Cells["existencia"].Value);
                                 dbcmd.Parameters[15].Value = false;
                                 dbcmd.Parameters[16].Value = ROW2.Cells["descripcion del producto"].Value;
                                 dbcmd.Parameters[17].Value = 28;
@@ -2109,13 +2118,13 @@ namespace MigradorXls
             dbcmd.Parameters[0].Value = Globals.org;
             dbcmd.Parameters[1].Value = ROW.Cells["numero factura"].Value;
             dbcmd.Parameters[2].Value = ROW.Cells["cod cliente"].Value.ToString().Replace(" ", string.Empty); 
-            dbcmd.Parameters[3].Value = ExtractDate(ROW.Cells["fecha emision"].Value.ToString());
-            dbcmd.Parameters[4].Value = ExtractDate(ROW.Cells["fecha vencimiento"].Value.ToString());
+            dbcmd.Parameters[3].Value = dt.ExtractDate(ROW.Cells["fecha emision"].Value.ToString());
+            dbcmd.Parameters[4].Value = dt.ExtractDate(ROW.Cells["fecha vencimiento"].Value.ToString());
             dbcmd.Parameters[5].Value = 0;
-            dbcmd.Parameters[6].Value = ROW.Cells["monto total"].Value;
-            dbcmd.Parameters[7].Value = ROW.Cells["saldo"].Value;
-            dbcmd.Parameters[8].Value = ROW.Cells["saldo inicial"].Value;
-            dbcmd.Parameters[9].Value = ROW.Cells["monto exento"].Value;
+            dbcmd.Parameters[6].Value = ROW.Cells["monto total"].Value.ToString().Replace(".",",");
+            dbcmd.Parameters[7].Value = ROW.Cells["saldo"].Value.ToString().Replace(".", ",");
+            dbcmd.Parameters[8].Value = ROW.Cells["saldo inicial"].Value.ToString().Replace(".", ",");
+            dbcmd.Parameters[9].Value = ROW.Cells["monto exento"].Value.ToString().Replace(".", ",");
             dbcmd.Parameters[10].Value = ROW.Cells["numero de control"].Value;
             dbcmd.Parameters[11].Value = "INNOVA";
             dbcmd.Parameters[12].Value = 1;
@@ -2126,24 +2135,24 @@ namespace MigradorXls
             var db = DBConn.Instance;
             var col = db.Collection<Tipos>();
             dbcmd.Parameters[17].Value = col.Find(x => x.tipo == ROW.Cells["tipo operacion"].Value.ToString().Replace(" ", string.Empty)).FirstOrDefault().codigo;
-            switch((string)ROW.Cells["tipo operacion"].Value)
+            switch((string)ROW.Cells["tipo operacion"].Value.ToString().Replace(" ", string.Empty))
             {
                 case "Fcxc":
                     {
                         dbcmd.Parameters[18].Value = 0;
-                        dbcmd.Parameters[19].Value = ROW.Cells["saldo inicial"].Value;
+                        dbcmd.Parameters[19].Value = ROW.Cells["saldo inicial"].Value.ToString().Replace(".", ",");
                         break;
                     }
                 case "NC":
                     {
-                        dbcmd.Parameters[18].Value = ROW.Cells["saldo inicial"].Value;
+                        dbcmd.Parameters[18].Value = ROW.Cells["saldo inicial"].Value.ToString().Replace(".", ",");
                         dbcmd.Parameters[19].Value = 0;
                         break;
                     }
                 case "ND":
                     {
                         dbcmd.Parameters[18].Value = 0;
-                        dbcmd.Parameters[19].Value = ROW.Cells["saldo inicial"].Value;
+                        dbcmd.Parameters[19].Value = ROW.Cells["saldo inicial"].Value.ToString().Replace(".", ",");
                         break;
                     }
             }
@@ -2181,8 +2190,8 @@ namespace MigradorXls
             dbcmd.Parameters[0].Value = Globals.org;
             dbcmd.Parameters[1].Value = ROW.Cells["porc impuesto" + z + ""].Value;
             dbcmd.Parameters[2].Value = ROW.Cells["cod impuesto" + z + ""].Value.ToString().Replace(" ", string.Empty); ;
-            dbcmd.Parameters[3].Value = ROW.Cells["base imponible" + z + ""].Value;
-            dbcmd.Parameters[4].Value = ROW.Cells["monto total"].Value;
+            dbcmd.Parameters[3].Value = ROW.Cells["base imponible" + z + ""].Value.ToString().Replace(".",",");
+            dbcmd.Parameters[4].Value = ROW.Cells["monto total"].Value.ToString().Replace(".", ",");
             dbcmd.Parameters[5].Value = reader;
             dbcmd.Parameters[6].Value = 1;
             dbcmd.Parameters[7].Value = true;
@@ -2224,8 +2233,8 @@ namespace MigradorXls
             dbcmd.Parameters[0].Value = Globals.org;
             dbcmd.Parameters[1].Value = ROW.Cells["numero factura"].Value;
             dbcmd.Parameters[2].Value = ROW.Cells["cod proveedor"].Value.ToString().Replace(" ", string.Empty);
-            dbcmd.Parameters[3].Value = ExtractDate(ROW.Cells["fecha emision"].Value.ToString());
-            dbcmd.Parameters[4].Value = ExtractDate(ROW.Cells["fecha vencimiento"].Value.ToString());
+            dbcmd.Parameters[3].Value = dt.ExtractDate(ROW.Cells["fecha emision"].Value.ToString());
+            dbcmd.Parameters[4].Value = dt.ExtractDate(ROW.Cells["fecha vencimiento"].Value.ToString());
             dbcmd.Parameters[5].Value = 0;
             dbcmd.Parameters[6].Value = ROW.Cells["monto total"].Value;
             dbcmd.Parameters[7].Value = ROW.Cells["saldo"].Value;
@@ -2240,7 +2249,7 @@ namespace MigradorXls
             var db = DBConn.Instance;
             var col = db.Collection<Tipos>();
             dbcmd.Parameters[16].Value = col.Find(x => x.tipo == ROW.Cells["tipo operacion"].Value.ToString().Replace(" ", string.Empty)).FirstOrDefault().codigo;
-            switch ((string)ROW.Cells["tipo operacion"].Value)
+            switch ((string)ROW.Cells["tipo operacion"].Value.ToString().Replace(" ", string.Empty))
             {
                 case "Fcxp":
                     {
@@ -2308,7 +2317,7 @@ namespace MigradorXls
                 NpgsqlCommand dbcmd = new NpgsqlCommand();
                 if (!adelantos.ContainsKey(ROW.Cells["Codigo del Cliente"].Value.ToString().Replace(" ", string.Empty)))
                 {
-                    adelantos[ROW.Cells["Codigo del Cliente"].Value.ToString().Replace(" ", string.Empty)] = ExtractDate(ROW.Cells["Fecha adelanto"].Value.ToString());
+                    adelantos[ROW.Cells["Codigo del Cliente"].Value.ToString().Replace(" ", string.Empty)] = dt.ExtractDate(ROW.Cells["Fecha adelanto"].Value.ToString());
 
                     sql = @"INSERT INTO admin.fin_cli_adelanto(org_hijo,saldo,reg_usu_cc,reg_estatus, cli_hijo,
                      migrado) VALUES(@orgHijo ,
@@ -2352,8 +2361,8 @@ namespace MigradorXls
                 dbcmd.Parameters[0].Value = Globals.org;
                 dbcmd.Parameters[1].Value = ROW.Cells["Monto"].Value;
                 dbcmd.Parameters[2].Value = ROW.Cells["Observacion"].Value;
-                dbcmd.Parameters[3].Value = ROW.Cells["Codigo del Cliente"].Value;
-                dbcmd.Parameters[4].Value = ExtractDate(ROW.Cells["Fecha adelanto"].Value.ToString());
+                dbcmd.Parameters[3].Value = ROW.Cells["Codigo del Cliente"].Value.ToString().Replace(" ", string.Empty);
+                dbcmd.Parameters[4].Value = dt.ExtractDate(ROW.Cells["Fecha adelanto"].Value.ToString());
                 dbcmd.Parameters[5].Value = true;
 
                 count += dbcmd.ExecuteNonQuery();
@@ -2369,8 +2378,8 @@ namespace MigradorXls
                 NpgsqlCommand dbcmd = new NpgsqlCommand();
                 if (!adelantos.ContainsKey(ROW.Cells["Codigo del Proveedor"].Value.ToString().Replace(" ",string.Empty)))
                 {
-                    adelantos[ROW.Cells["Codigo del Proveedor"].Value.ToString().Replace(" ", string.Empty)] = ExtractDate(ROW.Cells["Fecha adelanto"].Value.ToString());
-
+                    adelantos[ROW.Cells["Codigo del Proveedor"].Value.ToString().Replace(" ", string.Empty)] = dt.ExtractDate(ROW.Cells["Fecha adelanto"].Value.ToString());
+                   
                     sql = @"INSERT INTO admin.fin_prov_adelanto(org_hijo,saldo,reg_usu_cc,reg_estatus, prov_hijo,
                      migrado) VALUES(@orgHijo , 
                     @saldo, @regusucc , @regEstatus,@clihijo, @migrado)";
@@ -2388,7 +2397,7 @@ namespace MigradorXls
                     dbcmd.Parameters[1].Value = 0;
                     dbcmd.Parameters[2].Value = "INNOVA";
                     dbcmd.Parameters[3].Value = 1;
-                    dbcmd.Parameters[4].Value = ROW.Cells["Codigo del Proveedor"].Value;
+                    dbcmd.Parameters[4].Value = ROW.Cells["Codigo del Proveedor"].Value.ToString().Replace(" ", string.Empty);
                     dbcmd.Parameters[5].Value = true;
 
                     count += dbcmd.ExecuteNonQuery();
@@ -2412,8 +2421,8 @@ namespace MigradorXls
                 dbcmd.Parameters[0].Value = Globals.org;
                 dbcmd.Parameters[1].Value = ROW.Cells["Monto"].Value;
                 dbcmd.Parameters[2].Value = ROW.Cells["Observacion"].Value;
-                dbcmd.Parameters[3].Value = ROW.Cells["Codigo del Proveedor"].Value;
-                dbcmd.Parameters[4].Value = ExtractDate(ROW.Cells["Fecha adelanto"].Value.ToString());
+                dbcmd.Parameters[3].Value = ROW.Cells["Codigo del Proveedor"].Value.ToString().Replace(" ", string.Empty);
+                dbcmd.Parameters[4].Value = dt.ExtractDate(ROW.Cells["Fecha adelanto"].Value.ToString());
                 dbcmd.Parameters[5].Value = true;
 
                 count += dbcmd.ExecuteNonQuery();
@@ -2493,7 +2502,7 @@ namespace MigradorXls
                 dbcmd.Parameters[6].Value = "INNOVA";
                 dbcmd.Parameters[7].Value = "INNOVA";
                 dbcmd.Parameters[8].Value = 1;
-                dbcmd.Parameters[9].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[9].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                 dbcmd.Parameters[10].Value = true;
                 count += dbcmd.ExecuteNonQuery();
             }
@@ -2533,7 +2542,7 @@ namespace MigradorXls
                 dbcmd.Parameters[6].Value = "INNOVA";
                 dbcmd.Parameters[7].Value = "INNOVA";
                 dbcmd.Parameters[8].Value = 1;
-                dbcmd.Parameters[9].Value = convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
+                dbcmd.Parameters[9].Value = dt.convertBoolean(ROW.Cells["estatus (disponibilidad)"].Value);
                 dbcmd.Parameters[10].Value = true;
                 count += dbcmd.ExecuteNonQuery();
             }
@@ -2542,19 +2551,7 @@ namespace MigradorXls
 
         #region Eventos, Metodos y Clases
 
-        public static DateTime? ExtractDate(string myDate)
-        {
-            if (!string.IsNullOrEmpty(myDate) && !string.IsNullOrWhiteSpace(myDate))
-            {
-                DateTime dt;
-                var formatStrings = new string[] { "dd/MM/yyyy h:mm:ss","dd/MM/yyyy", "d/M/yyyy",
-                    "dd.MM.yyyy h:mm:ss","dd.MM.yyyy", "d.M.yyyy",
-                    "dd-MM-yyyy h:mm:ss", "dd-MM-yyyy", "d-M-yyyy" };
-                dt = DateTime.ParseExact(myDate, formatStrings, new CultureInfo("en-US"), DateTimeStyles.None);
-                return dt;
-            }
-            return null;
-        }
+        
 
         public double preciofinanciero (double costo, double utilidad)
         {
@@ -2562,16 +2559,11 @@ namespace MigradorXls
         }
         public double porcUtilidad(double porc)
         {
-            if (porc == 100 || porc < 0) return 0;
+            if (porc == 100) return 0;
             else return porc;
             
         }
-        public bool convertBoolean(object obj)
-        {
-            string text = Convert.ToString(obj);
-            if (text.Equals("t", StringComparison.OrdinalIgnoreCase) || text.Equals("true", StringComparison.OrdinalIgnoreCase)) return true;
-            return false;
-        }
+        
         private void radioButton2_CheckedChanged(object sender, EventArgs e)
         {
             if (radioButton2.Checked)
@@ -2595,6 +2587,15 @@ namespace MigradorXls
                 comboBox1.ValueMember = "id";
             }
         }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            foreach(DataGridViewRow row in dataGridView1.Rows)
+            {
+                if (row.DefaultCellStyle.BackColor == Color.Red)
+                    dataGridView1.CurrentCell = dataGridView1.Rows[row.Index].Cells[0];
+            }
+        }
     }
     public class Tipos
     {
@@ -2608,6 +2609,7 @@ namespace MigradorXls
         {
             this.tipo = tipos;
             this.codigo = codigos;
+            
         }
     }
     public class admin
@@ -2621,6 +2623,24 @@ namespace MigradorXls
         }
 
         public admin(string descri, int cod)
+        {
+            this.desc = descri;
+            this.Id = cod;
+        }
+
+    }
+
+    public class adminA2
+    {
+        public String desc { get; set; }
+        public int Id { get; set; }
+
+        public adminA2()
+        {
+
+        }
+
+        public adminA2(string descri, int cod)
         {
             this.desc = descri;
             this.Id = cod;

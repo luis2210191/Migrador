@@ -79,6 +79,7 @@
       <DependentUpon>Ajustes.cs</DependentUpon>
     </Compile>
     <Compile Include="Class1.cs" />
+    <Compile Include="DataConvert.cs" />
     <Compile Include="DBConnection.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -221,6 +222,7 @@
     <None Include="Resources\azul.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\todo.png" />
     <None Include="Resources\ajustes de precios.png" />
     <None Include="Resources\buscar.png" />
     <None Include="Resources\aplicar a todos.png" />
