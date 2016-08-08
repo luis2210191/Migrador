@@ -324,7 +324,7 @@ namespace MigradorXls
         #region Clientes
         private void A2Clientes(OdbcConnection objODBCCon)
         {
-            string oString = "Select FC_CODIGO, FC_DESCRIPCION, FC_DESCRIPCIONDETALLADA,FC_RIF, FC_DIRECCION1, FC_RETENCION, FC_SALDO, FC_STATUS FROM Sclientes";
+            string oString = "Select FC_CODIGO, FC_DESCRIPCION, FC_DESCRIPCIONDETALLADA,FC_RIF,FC_CONTACTO, FC_TELEFONO, FC_EMAIL, FC_DIRECCION1, FC_RETENCION, FC_SALDO, FC_STATUS FROM Sclientes";
             OdbcDataAdapter comm = new OdbcDataAdapter(oString, objODBCCon);
             comm.Fill(TAB);
             dataGridView1.DataSource = TAB.Tables[0];
@@ -340,13 +340,13 @@ namespace MigradorXls
                         es_exento,es_retencion,es_monto,monto_min,monto_max,monto_cred_max,monto_acum,
                         pri_vmonto,ult_vmonto,ult_pmonto,pago_max,pago_adel,longitud, latitud, altitud,
                         pago_prom,monto_cred_min,saldo, reg_usu_cc,reg_usu_cu,reg_estatus,disponible, 
-                        migrado,es_datos,es_vip,es_pronto, observacion, tipo_ret_iva) 
+                        migrado,es_datos,es_vip,es_pronto, observacion, tipo_ret_iva, telefono, email, nomb_persona) 
                         VALUES(@org_hijo,@cod_interno,@cli_hijo,@descri,@tipo_cont,@tipo_pers,
                         @PorcRetIva,@rif,@direc1,@descuento,@es_descuento,
                         @es_exento,@es_retencion,@es_monto,@monto_min,@monto_max,@monto_cred_max,@monto_acum,
                         @pri_vmonto,@ult_vmonto,@ult_pmonto,@pago_max,@pago_adel,@longitud,@latitud,@altitud,
                         @pago_prom,@montoCredMin,@saldo, @reg_usu_cc,@reg_usu_cu,@reg_estatus,@disponible, 
-                        @migrado, @esdatos, @esvip, @espronto, @observacion, @tipo_ret_iva)";
+                        @migrado, @esdatos, @esvip, @espronto, @observacion, @tipo_ret_iva, @telefono, @email,@nombPersona)";
 
 
             NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn);
@@ -389,7 +389,9 @@ namespace MigradorXls
             dbcmd.Parameters.Add(new NpgsqlParameter("@espronto", NpgsqlDbType.Boolean));
             dbcmd.Parameters.Add(new NpgsqlParameter("@observacion", NpgsqlDbType.Varchar));
             dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_ret_iva", NpgsqlDbType.Varchar));
-
+            dbcmd.Parameters.Add(new NpgsqlParameter("@telefono", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@email", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@nombPersona", NpgsqlDbType.Varchar));
 
             dbcmd.Prepare();
 
@@ -432,6 +434,9 @@ namespace MigradorXls
             dbcmd.Parameters[36].Value = true;
             dbcmd.Parameters[37].Value = "ESTA DATA FUE MIGRADA, POR FAVOR VERIFICAR LOS DATOS";
             dbcmd.Parameters[38].Value = retencion(dt.GetValue<double>(ROW.Cells["FC_RETENCION"].Value).ToString());
+            dbcmd.Parameters[39].Value = ROW.Cells["FC_TELEFONO"].Value;
+            dbcmd.Parameters[40].Value = ROW.Cells["FC_EMAIL"].Value;
+            dbcmd.Parameters[41].Value = ROW.Cells["FC_CONTACTO"].Value;
             count += dbcmd.ExecuteNonQuery();
         }
         #endregion
@@ -439,7 +444,7 @@ namespace MigradorXls
         #region Proveedores
         private void A2Prov(OdbcConnection objODBCCon)
         {
-            string oString = "Select FP_CODIGO, FP_DESCRIPCION, FP_DESCRIPCIONDETALLADA, FP_RIF, FP_DIRECCION1, FP_RETENCIONIVA, FP_SALDO, FP_STATUS FROM Sproveedor";
+            string oString = "Select FP_CODIGO, FP_DESCRIPCION, FP_DESCRIPCIONDETALLADA,FP_TELEFONO,FP_EMAIL,FP_CONTACTO, FP_RIF, FP_DIRECCION1, FP_RETENCIONIVA, FP_SALDO, FP_STATUS FROM Sproveedor";
             OdbcDataAdapter comm = new OdbcDataAdapter(oString, objODBCCon);
             comm.Fill(TAB);
             dataGridView1.DataSource = TAB.Tables[0];
@@ -455,13 +460,13 @@ namespace MigradorXls
                         es_exento,es_retencion,es_monto,monto_min,monto_max,monto_cred,
                         pri_monto,ult_monto,rect_monto,pago_max,pago_ade,
                         pago_prom,saldo, reg_usu_cc,reg_usu_cu,reg_estatus,disponible, migrado,
-                        porc_ret_iva, observacion, tipo_ret_iva) 
+                        porc_ret_iva, observacion, tipo_ret_iva, telefono, email, nomb_persona) 
                         VALUES(@org_hijo,@cod_interno,@prov_hijo,@descri,
                         @tipo_cont,@tipo_pers,@rif,@direc1,@descuento,@es_descuento,
                         @es_exento,@es_retencion,@es_monto,@monto_min,@monto_max,@monto_cred,
                         @pri_monto,@ult_monto,@rect_monto,@pago_max,@pago_ade,
                         @pago_prom,@saldo, @reg_usu_cc,@reg_usu_cu,@reg_estatus,@disponible, 
-                        @migrado, @porcretiva, @Observacion, @tipo_ret_iva)";
+                        @migrado, @porcretiva, @Observacion, @tipo_ret_iva,@telefono,@email, @nombPersona)";
 
 
                 NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn);
@@ -496,9 +501,12 @@ namespace MigradorXls
                 dbcmd.Parameters.Add(new NpgsqlParameter("@porcretiva", NpgsqlDbType.Double));
                 dbcmd.Parameters.Add(new NpgsqlParameter("@Observacion", NpgsqlDbType.Varchar));
                 dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_ret_iva", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@telefono", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@email", NpgsqlDbType.Varchar));
+                dbcmd.Parameters.Add(new NpgsqlParameter("@nombPersona", NpgsqlDbType.Varchar));
 
 
-                dbcmd.Prepare();
+            dbcmd.Prepare();
 
                 dbcmd.Parameters[0].Value = Globals.org;
                 dbcmd.Parameters[1].Value = codInterno;
@@ -531,8 +539,10 @@ namespace MigradorXls
                 dbcmd.Parameters[28].Value = dt.GetValue<double>(ROW.Cells["FP_RETENCIONIVA"].Value);
                 dbcmd.Parameters[29].Value = "ESTA DATA FUE MIGRADA, POR FAVOR VERIFICAR LOS DATOS";
                 dbcmd.Parameters[30].Value = retencion(dt.GetValue<double>(ROW.Cells["FP_RETENCIONIVA"].Value).ToString());
-
-                count += dbcmd.ExecuteNonQuery();
+                dbcmd.Parameters[31].Value = ROW.Cells["FP_TELEFONO"].Value;
+                dbcmd.Parameters[32].Value = ROW.Cells["FP_EMAIL"].Value;
+                dbcmd.Parameters[33].Value = ROW.Cells["FP_CONTACTO"].Value;
+            count += dbcmd.ExecuteNonQuery();
             
         }
         #endregion
