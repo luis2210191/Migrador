@@ -20,8 +20,10 @@ namespace MigradorXls
 {
     public partial class MigracionBD : Form
     {
+        #region Declaraciones
         string sql;
         string file;
+        string seleccion = "";
         string connectionString = @"Host=" + Globals.Host + ";port=" + Globals.port + ";Database=" + Globals.DB + ";User ID=" + Globals.usuario + ";Password=" + Globals.pass + ";";
         int codInterno = 0;
         int count = 0;
@@ -34,21 +36,23 @@ namespace MigradorXls
         public MigracionBD()
         {
             InitializeComponent();
+
             var db = DBConn.Instance;
-            var c = db.Collection<adminA2>();
-            List<adminA2> ad = c.Find(Query.All()).ToList();
+            var c = db.Collection<Config>();
+            int cn = c.Count();
+            Globals.ServidorSaint = c.FindById(cn).descServSaint;
+            Globals.NombBDSaint = c.FindById(cn).BDSaint;
+            var z = db.Collection<adminA2>();
+            List<adminA2> ad = z.Find(Query.All()).ToList();
             comboBox2.DataSource = ad;
             comboBox2.DisplayMember = "desc";
             comboBox2.ValueMember = "id";
-
         }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            MigrarData();            
-        }       
-
+        #endregion
+        
         #region Migraciones
+
+        #region A2(DBIsam)
 
         #region Zonas
         private void A2Zonas(OdbcConnection objODBCCon)
@@ -115,7 +119,7 @@ namespace MigradorXls
 
         private void callbackInsertMoneda(NpgsqlConnection conn, DataGridViewRow ROW)
         {
-            conn.Open();
+            
             sql = @"INSERT INTO admin.gen_moneda(org_hijo,cod_interno,codigo,descri,descorta,simbolo,
                     factor,ant_factor, reg_usu_cc, reg_usu_cu,reg_estatus, 
                     disponible,migrado) VALUES(@orgHijo , @codInterno,
@@ -153,7 +157,7 @@ namespace MigradorXls
             dbcmd.Parameters[12].Value = true;
 
             count += dbcmd.ExecuteNonQuery();
-            conn.Close();
+            
 
         }
         #endregion
@@ -903,9 +907,401 @@ namespace MigradorXls
         }
         #endregion
 
+        #region Banco
+        private void A2Banco(OdbcConnection objODBCCon)
+        {
+            string oString = "Select FB_CODIGO, FB_DESCRIPCION, FB_DESCRIPCIONDETALLADA, FB_CONTACTO, FZ_STATUS from Szonas";
+            OdbcDataAdapter comm = new OdbcDataAdapter(oString, objODBCCon);
+            comm.Fill(TAB);
+        }
+
+        private void callbackInsertBanco(NpgsqlConnection conn, DataGridViewRow ROW)
+        {
+
+            sql = @"INSERT INTO admin.gen_zona(org_hijo,cod_interno,codigo,descri,descorta,
+                    latitud,longitud,altitud, reg_usu_cc, reg_usu_cu,reg_estatus, 
+                    disponible,migrado) VALUES(@orgHijo , @codInterno,
+                    @codigo, @descri, @descorta , @logitud, @latitud, 
+                    @altitud, @reg_usu_cc , @reg_usu_cu, @regEstatus, @disponible, @migrado)";
+            NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn);
+            dbcmd.Parameters.Add(new NpgsqlParameter("@orghijo", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@codInterno", NpgsqlDbType.Bigint));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@codigo", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@descri", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@descorta", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@logitud", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@latitud", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@altitud", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cc", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cu", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@regEstatus", NpgsqlDbType.Integer));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@disponible", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
+
+            dbcmd.Prepare();
+
+            dbcmd.Parameters[0].Value = Globals.org;
+            dbcmd.Parameters[1].Value = codInterno;
+            dbcmd.Parameters[2].Value = ROW.Cells["FZ_CODIGO"].Value;
+            dbcmd.Parameters[3].Value = ROW.Cells["FZ_DESCRIPCION"].Value;
+            dbcmd.Parameters[4].Value = ROW.Cells["FZ_DESCRIPCION"].Value;
+            dbcmd.Parameters[5].Value = 0;
+            dbcmd.Parameters[6].Value = 0;
+            dbcmd.Parameters[7].Value = 0;
+            dbcmd.Parameters[8].Value = "INNOVA";
+            dbcmd.Parameters[9].Value = "INNOVA";
+            dbcmd.Parameters[10].Value = 1;
+            dbcmd.Parameters[11].Value = ROW.Cells["FZ_STATUS"].Value;
+            dbcmd.Parameters[12].Value = true;
+
+            count += dbcmd.ExecuteNonQuery();
+
+        }
+        #endregion
+
+        #endregion
+
+        #region Saint(SQLServer)
+        private void SaZonas(SqlConnection objODBCCon)
+        {
+            string oString = "Select FZ_CODIGO, FZ_DESCRIPCION, FZ_STATUS from Szonas";
+            SqlDataAdapter comm = new SqlDataAdapter(oString, objODBCCon);
+            comm.Fill(TAB);
+
+        }
+
+        #region Moneda
+        private void SaMoneda(SqlConnection objODBCCon)
+        {
+            string oString = "Select CodMone, Descripcion, CodMone as Simbolo, Factor from SBMONE";
+            SqlDataAdapter comm = new SqlDataAdapter(oString, objODBCCon);
+            comm.Fill(TAB);
+            dataGridView1.DataSource = TAB.Tables[0];
+
+        }
+        private void callbackInsertMonedaSaint(NpgsqlConnection conn, DataGridViewRow ROW)
+        {
+            
+            sql = @"INSERT INTO admin.gen_moneda(org_hijo,cod_interno,codigo,descri,descorta,simbolo,
+                    factor,ant_factor, reg_usu_cc, reg_usu_cu,reg_estatus, 
+                    disponible,migrado) VALUES(@orgHijo , @codInterno,
+                    @codigo, @descri, @descorta ,@simbolo, @factor, @antFactor, 
+                    @reg_usu_cc , @reg_usu_cu, @regEstatus, @disponible, @migrado)";
+            NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn);
+            dbcmd.Parameters.Add(new NpgsqlParameter("@orghijo", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@codInterno", NpgsqlDbType.Bigint));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@codigo", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@descri", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@descorta", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@simbolo", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@factor", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@antFactor", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cc", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cu", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@regEstatus", NpgsqlDbType.Integer));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@disponible", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
+
+            dbcmd.Prepare();
+
+            dbcmd.Parameters[0].Value = Globals.org;
+            dbcmd.Parameters[1].Value = codInterno;
+            dbcmd.Parameters[2].Value = ROW.Cells["CodMone"].Value;
+            dbcmd.Parameters[3].Value = ROW.Cells["Descripcion"].Value;
+            dbcmd.Parameters[4].Value = ROW.Cells["Descripcion"].Value;
+            dbcmd.Parameters[5].Value = ROW.Cells["Simbolo"].Value;
+            dbcmd.Parameters[6].Value = ROW.Cells["Factor"].Value;
+            dbcmd.Parameters[7].Value = 1;
+            dbcmd.Parameters[8].Value = "INNOVA";
+            dbcmd.Parameters[9].Value = "INNOVA";
+            dbcmd.Parameters[10].Value = 1;
+            dbcmd.Parameters[11].Value = true;
+            dbcmd.Parameters[12].Value = true;
+
+            count += dbcmd.ExecuteNonQuery();
+        }
+        #endregion
+
+        #region Clientes
+        private void SaClientes(SqlConnection objODBCCon)
+        {
+            string oString = @"Select CodClie, Descrip, DescripExt,ID3,Represent, Telef, Email, Direc1, Descto, 
+                                Saldo, FechaUV,MontoMax,MtoMaxCred,MontoUV,NumeroUV,FechaUP,MontoUP,NumeroUP,PagosA,RetenIva FROM SACLIE";
+            SqlDataAdapter comm = new SqlDataAdapter(oString, objODBCCon);
+            comm.Fill(TAB);
+            dataGridView1.DataSource = TAB.Tables[0];
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                RIF.Add(row.Cells["ID3"].Value.ToString());
+            }
+        }
+        private void callbackInsertClientesSaint(NpgsqlConnection conn, DataGridViewRow ROW)
+        {
+            sql = @"INSERT INTO admin.ven_cli(org_hijo,cod_interno,cli_hijo,descri,
+                        tipo_cont,tipo_pers,porc_ret_iva,rif,direc1,monto_descuento,es_descuento,
+                        es_exento,es_retencion,es_monto,monto_min,monto_max,monto_cred_max,monto_acum,
+                        pri_vmonto,ult_vmonto,ult_vfecha,ult_vdoc,ult_pmonto,ult_pfecha,ult_pdoc,
+                        pago_max,pago_adel,longitud, latitud, altitud,
+                        pago_prom,monto_cred_min,saldo, reg_usu_cc,reg_usu_cu,reg_estatus,disponible, 
+                        migrado,es_datos,es_vip,es_pronto, observacion, tipo_ret_iva, telefono, email, nomb_persona) 
+                        VALUES(@org_hijo,@cod_interno,@cli_hijo,@descri,@tipo_cont,@tipo_pers,
+                        @PorcRetIva,@rif,@direc1,@descuento,@es_descuento,
+                        @es_exento,@es_retencion,@es_monto,@monto_min,@monto_max,@monto_cred_max,@monto_acum,
+                        @pri_vmonto,@ult_vmonto,@ult_vfecha,@ult_vdoc,@ult_pmonto,@ult_pfecha,@ult_pdoc,
+                        @pago_max,@pago_adel,@longitud,@latitud,@altitud,
+                        @pago_prom,@montoCredMin,@saldo, @reg_usu_cc,@reg_usu_cu,@reg_estatus,@disponible, 
+                        @migrado, @esdatos, @esvip, @espronto, @observacion, @tipo_ret_iva, @telefono, @email,@nombPersona)";
+
+
+            NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn);
+            dbcmd.Parameters.Add(new NpgsqlParameter("@org_hijo", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@cod_interno", NpgsqlDbType.Bigint));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@cli_hijo", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@descri", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_cont", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_pers", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@rif", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@direc1", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@descuento", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@es_descuento", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@es_exento", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@es_retencion", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@es_monto", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@monto_min", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@monto_max", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@monto_cred_max", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@pri_vmonto", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@ult_vmonto", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@ult_vfecha", NpgsqlDbType.Timestamp));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@ult_vdoc", NpgsqlDbType.Bigint));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@ult_pmonto", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@ult_pfecha", NpgsqlDbType.Timestamp));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@ult_pdoc", NpgsqlDbType.Bigint));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@pago_max", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@pago_adel", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@pago_prom", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@saldo", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cc", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cu", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@reg_estatus", NpgsqlDbType.Integer));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@disponible", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@PorcRetIva", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@monto_acum", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@montoCredMin", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@longitud", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@latitud", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@altitud", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@esdatos", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@esvip", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@espronto", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@observacion", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_ret_iva", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@telefono", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@email", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@nombPersona", NpgsqlDbType.Varchar));
+
+            dbcmd.Prepare();
+
+            dbcmd.Parameters[0].Value = Globals.org;
+            dbcmd.Parameters[1].Value = codInterno;
+            dbcmd.Parameters[2].Value = ROW.Cells["CodClie"].Value.ToString().Replace(" ", string.Empty);
+            dbcmd.Parameters[3].Value = ROW.Cells["Descrip"].Value;
+            dbcmd.Parameters[4].Value = "03.1";
+            dbcmd.Parameters[5].Value = "02.1";
+            dbcmd.Parameters[6].Value = ROW.Cells["ID3"].Value.ToString().Replace(" ", string.Empty);
+            dbcmd.Parameters[7].Value = ROW.Cells["Direc1"].Value;
+            dbcmd.Parameters[8].Value = ROW.Cells["Descto"].Value;
+            dbcmd.Parameters[9].Value = false;
+            dbcmd.Parameters[10].Value = false;
+            dbcmd.Parameters[11].Value = false;
+            dbcmd.Parameters[12].Value = false;
+            dbcmd.Parameters[13].Value = 0;
+            dbcmd.Parameters[14].Value = ROW.Cells["MontoMax"].Value.ToString().Replace(".",",");
+            dbcmd.Parameters[15].Value = ROW.Cells["MtoMaxCred"].Value.ToString().Replace(".", ",");
+            dbcmd.Parameters[16].Value = 0;
+            dbcmd.Parameters[17].Value = ROW.Cells["MontoUV"].Value.ToString().Replace(".", ",");
+            dbcmd.Parameters[18].Value = dt.ExtractDate(ROW.Cells["FechaUV"].Value.ToString());
+            dbcmd.Parameters[19].Value = ROW.Cells["NumeroUV"].Value.FromStringToInt();
+            dbcmd.Parameters[20].Value = ROW.Cells["MontoUP"].Value.ToString().Replace(".", ",");
+            dbcmd.Parameters[21].Value = dt.ExtractDate(ROW.Cells["FechaUP"].Value.ToString());
+            dbcmd.Parameters[22].Value = ROW.Cells["NumeroUP"].Value.FromStringToInt();
+            dbcmd.Parameters[23].Value = 0;
+            dbcmd.Parameters[24].Value = ROW.Cells["PagosA"].Value.ToString().Replace(".", ",");
+            dbcmd.Parameters[25].Value = 0;
+            dbcmd.Parameters[26].Value = ROW.Cells["Saldo"].Value.ToString().Replace(".", ",");
+            dbcmd.Parameters[27].Value = "INNOVA";
+            dbcmd.Parameters[28].Value = "INNOVA";
+            dbcmd.Parameters[29].Value = 1;
+            dbcmd.Parameters[30].Value = true;
+            dbcmd.Parameters[31].Value = true;
+            dbcmd.Parameters[32].Value = ROW.Cells["RetenIva"].Value.ToString().Replace(".", ",");
+            dbcmd.Parameters[33].Value = 0;
+            dbcmd.Parameters[34].Value = 0;
+            dbcmd.Parameters[35].Value = 0;
+            dbcmd.Parameters[36].Value = 0;
+            dbcmd.Parameters[37].Value = 0;
+            dbcmd.Parameters[38].Value = true;
+            dbcmd.Parameters[39].Value = true;
+            dbcmd.Parameters[40].Value = true;
+            dbcmd.Parameters[41].Value = "ESTA DATA FUE MIGRADA, POR FAVOR VERIFICAR LOS DATOS";
+            dbcmd.Parameters[42].Value = retencion(ROW.Cells["RetenIva"].Value.ToString());
+            dbcmd.Parameters[43].Value = ROW.Cells["Telef"].Value;
+            dbcmd.Parameters[44].Value = "";//ROW.Cells["Email"].Value;
+            dbcmd.Parameters[45].Value = ROW.Cells["Represent"].Value;
+            count += dbcmd.ExecuteNonQuery();
+        }
+        #endregion
+
+        #region Proveedores
+        private void SaProv(SqlConnection objODBCCon)
+        {
+            string oString = @"Select CodProv, Descrip,Telef, Email, Represent, ID3, Direc1, 
+            FechaUC, NumeroUC, MontoUC, FechaUP, NumeroUP, MontoUP, MontoMax, PagosA, PromPago,
+            RetenIVA, Saldo FROM SAPROV";
+            SqlDataAdapter comm = new SqlDataAdapter(oString, objODBCCon);
+            comm.Fill(TAB);
+            dataGridView1.DataSource = TAB.Tables[0];
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                RIF.Add(row.Cells["ID3"].Value.ToString());
+            }
+        }
+        private void callbackInsertProvSaint(NpgsqlConnection conn, DataGridViewRow ROW)
+        {
+            sql = @"INSERT INTO admin.com_prov(org_hijo,cod_interno,prov_hijo,descri,
+                        tipo_cont,tipo_pers,rif,direc1,descuento,es_descuento,
+                        es_exento,es_retencion,es_monto,monto_min,monto_max,monto_cred,
+                        pri_monto,ult_fecha,ult_doc,ult_monto,rec_fecha,rec_doc,rect_monto,pago_max,pago_ade,
+                        pago_prom,saldo, reg_usu_cc,reg_usu_cu,reg_estatus,disponible, migrado,
+                        porc_ret_iva, observacion, tipo_ret_iva, telefono, email, nomb_persona) 
+                        VALUES(@org_hijo,@cod_interno,@prov_hijo,@descri,
+                        @tipo_cont,@tipo_pers,@rif,@direc1,@descuento,@es_descuento,
+                        @es_exento,@es_retencion,@es_monto,@monto_min,@monto_max,@monto_cred,
+                        @pri_monto,@ult_fecha,@ult_doc,@ult_monto,@rect_fecha,@rect_doc,@rect_monto,@pago_max,@pago_ade,
+                        @pago_prom,@saldo, @reg_usu_cc,@reg_usu_cu,@reg_estatus,@disponible, 
+                        @migrado, @porcretiva, @Observacion, @tipo_ret_iva,@telefono,@email, @nombPersona)";
+
+
+            NpgsqlCommand dbcmd = new NpgsqlCommand(sql, conn);
+            dbcmd.Parameters.Add(new NpgsqlParameter("@org_hijo", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@cod_interno", NpgsqlDbType.Bigint));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@prov_hijo", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@descri", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_cont", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_pers", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@rif", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@direc1", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@descuento", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@es_descuento", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@es_exento", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@es_retencion", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@es_monto", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@monto_min", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@monto_max", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@monto_cred", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@pri_monto", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@ult_fecha", NpgsqlDbType.Timestamp));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@ult_doc", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@ult_monto", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@rect_fecha", NpgsqlDbType.Timestamp));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@rect_doc", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@rect_monto", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@pago_max", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@pago_ade", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@pago_prom", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@saldo", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cc", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@reg_usu_cu", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@reg_estatus", NpgsqlDbType.Integer));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@disponible", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@migrado", NpgsqlDbType.Boolean));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@porcretiva", NpgsqlDbType.Double));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@Observacion", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@tipo_ret_iva", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@telefono", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@email", NpgsqlDbType.Varchar));
+            dbcmd.Parameters.Add(new NpgsqlParameter("@nombPersona", NpgsqlDbType.Varchar));
+
+
+            dbcmd.Prepare();
+
+            dbcmd.Parameters[0].Value = Globals.org;
+            dbcmd.Parameters[1].Value = codInterno;
+            dbcmd.Parameters[2].Value = ROW.Cells["CodProv"].Value.ToString().Replace(" ", string.Empty);
+            dbcmd.Parameters[3].Value = ROW.Cells["Descrip"].Value;
+            dbcmd.Parameters[4].Value = "03.1";
+            dbcmd.Parameters[5].Value = "02.1";
+            dbcmd.Parameters[6].Value = ROW.Cells["ID3"].Value.ToString().Replace(" ", string.Empty);
+            dbcmd.Parameters[7].Value = ROW.Cells["Direc1"].Value;
+            dbcmd.Parameters[8].Value = 0;
+            dbcmd.Parameters[9].Value = false;
+            dbcmd.Parameters[10].Value = false;
+            dbcmd.Parameters[11].Value = false;
+            dbcmd.Parameters[12].Value = false;
+            dbcmd.Parameters[13].Value = 0;
+            dbcmd.Parameters[14].Value = 0;
+            dbcmd.Parameters[15].Value = 0;
+            dbcmd.Parameters[16].Value = 0;
+            dbcmd.Parameters[17].Value = ROW.Cells["FechaUP"].Value; 
+            dbcmd.Parameters[18].Value = ROW.Cells["NumeroUP"].Value; 
+            dbcmd.Parameters[19].Value = ROW.Cells["MontoUP"].Value; 
+            dbcmd.Parameters[20].Value = ROW.Cells["FechaUC"].Value; 
+            dbcmd.Parameters[21].Value = ROW.Cells["NumeroUC"].Value; 
+            dbcmd.Parameters[22].Value = ROW.Cells["MontoUC"].Value; 
+            dbcmd.Parameters[23].Value = 0;
+            dbcmd.Parameters[24].Value = 0;
+            dbcmd.Parameters[25].Value = 0;
+            dbcmd.Parameters[26].Value = ROW.Cells["Saldo"].Value;
+            dbcmd.Parameters[27].Value = "INNOVA";
+            dbcmd.Parameters[28].Value = "INNOVA";
+            dbcmd.Parameters[29].Value = 1;
+            dbcmd.Parameters[30].Value = true;
+            dbcmd.Parameters[31].Value = true;
+            dbcmd.Parameters[32].Value = ROW.Cells["RetenIVA"].Value;
+            dbcmd.Parameters[33].Value = "ESTA DATA FUE MIGRADA, POR FAVOR VERIFICAR LOS DATOS";
+            dbcmd.Parameters[34].Value = retencion(ROW.Cells["RetenIVA"].Value.ToString());
+            dbcmd.Parameters[35].Value = ROW.Cells["Telef"].Value;
+            dbcmd.Parameters[36].Value = "";
+            dbcmd.Parameters[37].Value = ROW.Cells["Represent"].Value;
+            count += dbcmd.ExecuteNonQuery();
+
+        }
+        #endregion
+
+        #endregion
+
         #endregion
 
         #region Metodos y Eventos
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            MigrarData();
+        }
+
+        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+            comboBox2.DataSource = null;
+            if (radioButton1.Checked)
+            {
+                var db = DBConn.Instance;
+                var c = db.Collection<adminA2>();
+                List<adminA2> ad = c.Find(Query.All()).ToList();
+                comboBox2.DataSource = ad;
+                comboBox2.DisplayMember = "desc";
+                comboBox2.ValueMember = "id";
+            }
+            else
+            {
+                var db = DBConn.Instance;
+                var c = db.Collection<adminSaint>();
+                List<adminSaint> ad = c.Find(Query.All()).ToList();
+                comboBox2.DataSource = ad;
+                comboBox2.DisplayMember = "desc";
+                comboBox2.ValueMember = "id";
+            }
+        }
 
         private void MigrarData()
         {
@@ -923,53 +1319,87 @@ namespace MigradorXls
                     {
                         Cursor.Current = Cursors.WaitCursor;
                         splitContainer1.Enabled = false;
-                        switch (comboBox2.Text)
+                        if (radioButton1.Checked)
                         {
-                            case "Zonas":
-                                {
-                                    callbackInsertZona(conn, ROW);
-                                    break;
-                                }
-                            case "Moneda":
-                                {
-                                    callbackInsertMoneda(conn, ROW);
-                                    break;
-                                }
-                            case "Talento":
-                                {
-                                    callbackInsertVendedores(conn, ROW);
-                                    break;
-                                }
-                            case "Clientes":
-                                {
-                                    callbackInsertClientes(conn, ROW);
-                                    break;
-                                }
-                            case "Proveedores":
-                                {
-                                    callbackInsertProv(conn, ROW);
-                                    break;
-                                }
-                            case "Categorias":
-                                {
-                                    callbackInsertCat(conn, ROW);
-                                    break;
-                                }
-                            case "Depositos":
-                                {
-                                    callbackInsertDeposito(conn, ROW);
-                                    break;
-                                }
-                            case "Cuentas por Cobrar":
-                                {
-                                    callbackInsertCxC(conn, ROW);
-                                    break;
-                                }
-                            case "Cuentas por Pagar":
-                                {
-                                    callbackInsertCxP(conn, ROW);
-                                    break;
-                                }
+                            switch (comboBox2.Text)
+                            {
+                                case "Zonas":
+                                    {
+                                        callbackInsertZona(conn, ROW);
+                                        break;
+                                    }
+                                case "Moneda":
+                                    {
+                                        callbackInsertMoneda(conn, ROW);
+                                        break;
+                                    }
+                                case "Talento":
+                                    {
+                                        callbackInsertVendedores(conn, ROW);
+                                        break;
+                                    }
+                                case "Clientes":
+                                    {
+                                        callbackInsertClientes(conn, ROW);
+                                        break;
+                                    }
+                                case "Proveedores":
+                                    {
+                                        callbackInsertProv(conn, ROW);
+                                        break;
+                                    }
+                                case "Categorias":
+                                    {
+                                        callbackInsertCat(conn, ROW);
+                                        break;
+                                    }
+                                case "Depositos":
+                                    {
+                                        callbackInsertDeposito(conn, ROW);
+                                        break;
+                                    }
+                                case "Cuentas por Cobrar":
+                                    {
+                                        callbackInsertCxC(conn, ROW);
+                                        break;
+                                    }
+                                case "Cuentas por Pagar":
+                                    {
+                                        callbackInsertCxP(conn, ROW);
+                                        break;
+                                    }
+                            }
+                        }
+                        else if (radioButton2.Checked)
+                        {
+                            switch (comboBox2.Text)
+                            {
+                                case "Zonas":
+                                    {
+                                        callbackInsertZona(conn, ROW);
+                                        break;
+                                    }
+                                case "Moneda":
+                                    {
+                                        callbackInsertMonedaSaint(conn, ROW);
+                                        break;
+                                    }
+                                case "Talento":
+                                    {
+                                        callbackInsertVendedores(conn, ROW);
+                                        break;
+                                    }
+                                case "Clientes":
+                                    {
+                                        callbackInsertClientesSaint(conn, ROW);
+                                        break;
+                                    }
+                                case "Proveedores":
+                                    {
+                                        callbackInsertProvSaint(conn, ROW);
+                                        break;
+                                    }
+                            }
                         }
                     }
                     catch (NpgsqlException ex)
@@ -978,7 +1408,14 @@ namespace MigradorXls
                         logWrite(ex, "");
                         var db = DBConn.Instance;
                         var col = db.Collection<Errores>();
-                        ROW.Cells["Error"].Value = col.Find(x => x.codigo == ex.Code.ToString()).FirstOrDefault().Desc;
+                        try
+                        {
+                            ROW.Cells["Error"].Value = col.Find(x => x.codigo == ex.Code.ToString()).FirstOrDefault().Desc;
+                        }
+                        catch (Exception)
+                        {
+                            ROW.Cells["Error"].Value = "Error no identificado";
+                        }
                         ROW.DefaultCellStyle.BackColor = Color.Red;
                         MessageBox.Show(ex.Message);
                         break;
@@ -996,7 +1433,7 @@ namespace MigradorXls
         {
             try
             {
-                string seleccion="";
+                
                 TAB.Reset();
                 string txtConStr = "DSN=conDBisam";
                 OdbcConnection objODBCCon = new OdbcConnection(txtConStr);
@@ -1085,9 +1522,53 @@ namespace MigradorXls
             catch (Exception E)
             {
                 MessageBox.Show(E.Message.ToString());
-                logWrite(E,"");
             }
 
+        }
+
+        private void ExtractSaintTable()
+        {
+            try
+            {
+                seleccion = "";
+                TAB.Reset();
+                SqlConnection myConnection = new SqlConnection("server=" + Globals.ServidorSaint + ";" +
+                                       "Trusted_Connection=yes;" +
+                                       "database=" + Globals.NombBDSaint + "; " +
+                                       "connection timeout=30");
+                myConnection.Open();
+                dataGridView1.Columns["Error"].Visible = true;
+                dataGridView1.Columns["Migrar"].Visible = true;
+                dataGridView1.Columns["numero"].Visible = true;
+                switch (comboBox2.Text)
+                {
+                    case "Moneda":
+                        {
+                            SaMoneda(myConnection);
+                            break;
+                        }
+                    case "Clientes":
+                        {
+                            SaClientes(myConnection);
+                            seleccion = "CodClie";
+                            break;
+                        }
+                    case "Proveedores":
+                        {
+                            SaProv(myConnection);
+                            seleccion = "CodProv";
+                            break;
+                        }
+                }
+                
+                loopdatagridSa(true, seleccion, act);
+                myConnection.Close();
+            }
+            catch(Exception x)
+            {
+                MessageBox.Show("Hubo un error\n"+x.Message);
+            }
+            
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -1103,7 +1584,11 @@ namespace MigradorXls
 
         private void button1_Click_1(object sender, EventArgs e)
         {
-            ExtractA2Table();
+            if (radioButton1.Checked == true)
+                ExtractA2Table();
+            else if (radioButton2.Checked == true)
+                ExtractSaintTable();
+            
             button2.Enabled = true;
         }
 
@@ -1139,6 +1624,41 @@ namespace MigradorXls
             }
             
                 
+        }
+
+        private void loopdatagridSa(bool mod,string tabla,bool select)
+        {
+            if (mod)
+            {
+                int cont = 0;
+                foreach (DataGridViewRow row in dataGridView1.Rows)
+                {
+                    cont++;
+                    if (!(row.DefaultCellStyle.BackColor == Color.DimGray))
+                    {
+                        row.Cells["Migrar"].Value = true;
+                        row.Cells["numero"].Value = cont;
+                        if (string.IsNullOrWhiteSpace(dt.GetValue<string>(row.Cells["ID3"].Value)) && tabla!="")
+                        {
+                            row.Cells["ID3"].Value = row.Cells[tabla].Value;
+                            row.Cells["Error"].Value = "Rif es un valor provisional";
+                            row.DefaultCellStyle.BackColor = Color.Yellow;
+                            row.Cells["Migrar"].Value = false;
+                        }
+                    }
+                }
+            }
+            else
+            {
+
+                foreach (DataGridViewRow row in dataGridView1.Rows)
+                {
+                    if (select) row.Cells["Migrar"].Value = true;
+                    else row.Cells["Migrar"].Value = false;
+                }
+            }
+
+
         }
 
         private string tipoContribuyente(string rif)
@@ -1304,7 +1824,17 @@ namespace MigradorXls
             
         }
 
+        private void button4_Click(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                if (row.DefaultCellStyle.BackColor == Color.Red)
+                    dataGridView1.CurrentCell = dataGridView1.Rows[row.Index].Cells[0];
+            }
+        }
+
         #endregion
-        
+
+
     }
 }

@@ -65,7 +65,11 @@ namespace MigradorXls
             myForm.Show();
         }
 
-        
+        private void button5_Click(object sender, EventArgs e)
+        {
+            config c = new config();
+            c.ShowDialog();
+        }
     }
 
 

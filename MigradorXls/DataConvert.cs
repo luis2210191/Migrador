@@ -14,7 +14,7 @@ namespace MigradorXls
             if (!string.IsNullOrEmpty(myDate) && !string.IsNullOrWhiteSpace(myDate))
             {
                 DateTime dt;
-                var formatStrings = new string[] { "dd/MM/yyyy h:mm:ss","dd/MM/yyyy", "d/M/yyyy",
+                var formatStrings = new string[] { "dd/MM/yyyy h:mm:ss","dd/MM/yyyy HH:mm:ss","dd/MM/yyyy hh:mm:ss","dd/MM/yyyy", "d/M/yyyy",
                     "dd.MM.yyyy h:mm:ss","dd.MM.yyyy", "d.M.yyyy",
                     "dd-MM-yyyy h:mm:ss", "dd-MM-yyyy", "d-M-yyyy" };
                 dt = DateTime.ParseExact(myDate.Replace("\t", ""), formatStrings, new CultureInfo("en-US"), DateTimeStyles.None);
@@ -27,12 +27,12 @@ namespace MigradorXls
         {
             string text = Convert.ToString(obj);
             if (text.Equals("t", StringComparison.OrdinalIgnoreCase) || text.Equals("true", StringComparison.OrdinalIgnoreCase)) return true;
-            return false;
+            else return false;
         }
 
         public  T GetValue<T>(object value)
         {
-            if (value == null || value == DBNull.Value)
+            if (value == DBNull.Value || string.IsNullOrWhiteSpace(value.ToString()))
                 return default(T);
             else
                 return (T)value;
@@ -43,9 +43,17 @@ namespace MigradorXls
 
     public static class Extension
     {
-        public static string ToStringOrEmpty(this Object value)
+        public static string ToStringOrEmpty(this object value)
         {
             return value == null ? "" : value.ToString();
+        }
+
+        public static int FromStringToInt(this object value)
+        {
+            if (value == DBNull.Value || string.IsNullOrWhiteSpace(value.ToString()))
+                return 0;
+            else
+                return Convert.ToInt32(value);
         }
     }
     
