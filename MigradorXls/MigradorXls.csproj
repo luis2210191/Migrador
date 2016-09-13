@@ -78,7 +78,6 @@
     <Compile Include="Ajustes.Designer.cs">
       <DependentUpon>Ajustes.cs</DependentUpon>
     </Compile>
-    <Compile Include="Class1.cs" />
     <Compile Include="config.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -93,6 +92,7 @@
     <Compile Include="DBConnection.Designer.cs">
       <DependentUpon>DBConnection.cs</DependentUpon>
     </Compile>
+    <Compile Include="DelphiBinUtils.cs" />
     <Compile Include="Globals.cs" />
     <Compile Include="Login.cs">
       <SubType>Form</SubType>

@@ -17,6 +17,9 @@ namespace MigradorXls
     public partial class DBConnection : Form
     {
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public DBConnection()
         {
 
@@ -25,6 +28,9 @@ namespace MigradorXls
             textBox2.Text = Globals.DB;
         }
 
+        /// <summary>
+        /// Evento click del boton para validar conexion a la BD
+        /// </summary>
         private void button1_Click(object sender, EventArgs e)
         {
             try

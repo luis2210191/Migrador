@@ -12,11 +12,17 @@ namespace MigradorXls
 {
     public partial class PorcUtil : Form
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public PorcUtil()
         {
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Metodo de carga del form
+        /// </summary>
         private void PorcUtil_Load(object sender, EventArgs e)
         {
             button1.DialogResult = DialogResult.OK;

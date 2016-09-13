@@ -31,11 +31,17 @@ namespace MigradorXls
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Evento que se acciona cuando el valor del combobox cambia
+        /// </summary>
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             button1.Enabled = true;
         }
 
+        /// <summary>
+        /// Metodo del boton seleccionar que carga la data en la vista
+        /// </summary>
         private void button1_Click(object sender, EventArgs e)
         {
             //seleccion del archivo a cargar
@@ -56,7 +62,7 @@ namespace MigradorXls
                     {
                         throw new Exception("Error: No se pudo determinar el nombre de la Hoja de Trabajo.");
                     }
-                    
+
                     string firstSheetName = dbSchema.Rows[0]["TABLE_NAME"].ToString();
                     MyCommand = new System.Data.OleDb.OleDbDataAdapter("select * from [" + firstSheetName + "]", Myconnetion);
                     MyCommand.TableMappings.Add("Table", "TestTable");
@@ -90,6 +96,9 @@ namespace MigradorXls
             }
         }
 
+        /// <summary>
+        /// Metodo del boton de migrar que realiza el proceso de ajuste de transacciones
+        /// </summary>
         private void button2_Click(object sender, EventArgs e)
         {
 
@@ -102,48 +111,51 @@ namespace MigradorXls
             //NpgsqlTransaction t = conn.BeginTransaction();
             //Recorriendo el Datagridview e insertando cada valor
             count = 0;
-            
-           
-            
-                foreach (DataGridViewRow ROW in dataGridView1.Rows)
+
+
+
+            foreach (DataGridViewRow ROW in dataGridView1.Rows)
+            {
+                try
                 {
-                    try
+
+                    switch (comboBox1.SelectedIndex)
                     {
+                        case 0:
+                            {
 
-                        switch (comboBox1.SelectedIndex)
-                        {
-                            case 0:
-                                {
+                                callbackInsertCargo(conn, ROW);
+                                break;
+                            }
+                        case 1:
+                            {
 
-                                    callbackInsertCargo(conn, ROW);
-                                    break;
-                                }
-                            case 1:
-                                {
-
-                                    callbackInsertAjustePrecio(conn, ROW);
-                                    break;
-                                }                            
-                        }
-
+                                callbackInsertAjustePrecio(conn, ROW);
+                                break;
+                            }
                     }
-                    
-                    catch (Exception ex)
-                    {
-                        //Mensaje de error en la insercion de datos
-                        MessageBox.Show("Hubo un Error en la insercion de datos. Excepcion: " + ex.Message.ToString());
-                        // Cambio de color de la fila del DataGridView cuya insercion arrojo una excepcion                       
-                        ROW.DefaultCellStyle.BackColor = Color.Red;
-                    }
+
+                }
+
+                catch (Exception ex)
+                {
+                    //Mensaje de error en la insercion de datos
+                    MessageBox.Show("Hubo un Error en la insercion de datos. Excepcion: " + ex.Message.ToString());
+                    // Cambio de color de la fila del DataGridView cuya insercion arrojo una excepcion                       
+                    ROW.DefaultCellStyle.BackColor = Color.Red;
+                }
             }
 
-            
+
             //t.Commit();
             conn.Close();
 
             MessageBox.Show(count + " Filas se almacenaron correctamente", "Atencion", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+        /// <summary>
+        /// Metodo que realiza el cargo
+        /// </summary>
         private void callbackInsertCargo(NpgsqlConnection conn, DataGridViewRow ROW)
         {
             double total = 0;
@@ -234,13 +246,13 @@ namespace MigradorXls
                         PRUEBA = ROW2.Cells["cod_alterno"].Value.ToString().Replace(" ", string.Empty);
 
                         count += dbcmd.ExecuteNonQuery();
-                        total += (Convert.ToDouble(ROW2.Cells["costo"].Value) * Convert.ToDouble(ROW2.Cells["cantidad"].Value)); 
+                        total += (Convert.ToDouble(ROW2.Cells["costo"].Value) * Convert.ToDouble(ROW2.Cells["cantidad"].Value));
                     }
                 }
 
                 t.Commit();
 
-                
+
                 //insercion del cargo
                 sql = @"INSERT INTO admin.int_cargo(org_hijo,cod_terminal,doc_num,tipo_opera,
                         descri,descorta,cod_dep,cod_autoriza,cod_persona,nomb_autoriza,nomb_persona,fecha,
@@ -384,9 +396,12 @@ namespace MigradorXls
                     }
                 }
                 t.Commit();
-                
+
             }
         }
+        /// <summary>
+        /// Metodo que realiza el ajuste
+        /// </summary>
         private void callbackInsertAjustePrecio(NpgsqlConnection conn, DataGridViewRow ROW)
         {
             if (ROW.Cells["org_hijo"].Value != null)
@@ -480,6 +495,9 @@ namespace MigradorXls
             }
         }
 
+        /// <summary>
+        /// Metodo que regresa un objeto tipo date
+        /// </summary>
         public static DateTime ExtractDate(string myDate)
         {
 
@@ -487,6 +505,9 @@ namespace MigradorXls
 
             return dt.Date;
         }
+        /// <summary>
+        /// Metodo que toma un string y segun su valor retorna un valor booleano
+        /// </summary>
         public bool convertBoolean(object obj)
         {
             string text = Convert.ToString(obj);

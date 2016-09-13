@@ -22,12 +22,16 @@ namespace MigradorXls
         DataTable inventario = new DataTable();
         DataTable Codigo1 = new DataTable();
         DataTable Codigo2 = new DataTable();
-        
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public Ajustes()
         {
             InitializeComponent();
         }
-
+        /// <summary>
+        /// Evento que se activa durante la carga del form Ajustes
+        /// </summary>
         private void Ajustes_Load(object sender, EventArgs e)
         {
             try
@@ -81,7 +85,9 @@ namespace MigradorXls
             }
 
         }
-
+        /// <summary>
+        /// Evento click del boton que realiza la busqueda en el inventario
+        /// </summary>
         private void button1_Click(object sender, EventArgs e)
         {
             try
@@ -146,7 +152,9 @@ namespace MigradorXls
             }
             
         }
-
+        /// <summary>
+        /// Evento de cambio de valor del radioButton 1 (categoria)
+        /// </summary>
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
             if (radioButton1.Checked == true)
@@ -156,7 +164,9 @@ namespace MigradorXls
                 checkBox1.Enabled = true;
             }           
         }
-
+        /// <summary>
+        /// Evento de cambio de valor del radioButton 2 (Codigo)
+        /// </summary>
         private void radioButton2_CheckedChanged(object sender, EventArgs e)
         {
             if (radioButton2.Checked == true)
@@ -168,7 +178,9 @@ namespace MigradorXls
                 checkBox1.Enabled = false;
             }
         }
-
+        /// <summary>
+        /// Evento de cambio de valor del radioButton 3 (Todos)
+        /// </summary>
         private void radioButton3_CheckedChanged(object sender, EventArgs e)
         {
             if (radioButton3.Checked == true)
@@ -181,7 +193,9 @@ namespace MigradorXls
             }
             
         }
-
+        /// <summary>
+        /// Evento de cambio del checkBox que maneja si se usara un rango de valores en la busqueda del inventario
+        /// </summary>
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             if (checkBox1.Checked == true && radioButton1.Checked == true)
@@ -195,7 +209,9 @@ namespace MigradorXls
                 comboBox3.Enabled = false;
             }
         }
-
+        /// <summary>
+        /// Evento de cambio de valor del combobox1 (Categoria)
+        /// </summary>
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             if(comboBox1.SelectedValue.ToString()=="Ninguna")
@@ -226,7 +242,9 @@ namespace MigradorXls
             comboBox3.DisplayMember = "codigo";
             comboBox3.ValueMember = "descri";
         }
-        
+        /// <summary>
+        /// Evento de finalizacion de edicion de celda en datagrid
+        /// </summary>
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
             
@@ -276,12 +294,16 @@ namespace MigradorXls
                 dataGridView1.Rows[e.RowIndex].Cells[0].Value = true;
             }   
         }
-
+        /// <summary>
+        /// Evento de inicio de edicion de celda del datagrid
+        /// </summary>
         private void dataGridView1_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
         {
             valorIni = Convert.ToDouble(dataGridView1.SelectedCells[0].Value);
         }
-
+        /// <summary>
+        /// Evento click del boton para aplicar un porcentaje de utilidad a todos los registros en el grid
+        /// </summary>
         private void button2_Click(object sender, EventArgs e)
         {
             using (var f = new PorcUtil() { Owner = this })
@@ -322,7 +344,9 @@ namespace MigradorXls
                 }
             }
         }
-
+        /// <summary>
+        /// Evento click para el boton que realiza el ajuste de precios
+        /// </summary>
         private void button3_Click(object sender, EventArgs e)
         {
             string codigos;
@@ -442,7 +466,9 @@ namespace MigradorXls
                 MessageBox.Show("Excepcion : "+EX.Message);
             }
         }
-
+        /// <summary>
+        /// Evento click del contenido de una celda en el datagrid
+        /// </summary>
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
@@ -503,18 +529,24 @@ namespace MigradorXls
                 MessageBox.Show("Se produjo una excepcion del tipo : "+x);
             }            
         }
+        /// <summary>
+        /// Metodo para el calculo del procentaje de utilidad teniendo el precio, el costo y el tipo del calculo(lineal o financiero))
+        /// </summary>
         private double calculoPorcentaje(int tipo, double precio, double costo)
         {
             double result = 0;
             if (tipo == 1)
             {
-                result = (precio - costo) * 100 / costo;
+                result = (precio - costo) * 100 / costo;//lineal
             }else
             {
-                result = (precio - costo) * 100 / precio;
+                result = (precio - costo) * 100 / precio;//financiero
             }
             return result;
         }
+        /// <summary>
+        /// Metodo para el calculo del precio teniendo el porcentaje de utilidad, el costo y el tipo del calculo(lineal o financiero)
+        /// </summary>
         private double calculoPrecio(int tipo,double costo, double porc)
         {
             double result=0;
@@ -528,7 +560,10 @@ namespace MigradorXls
                 }
 
                 return result;
-        }   
+        }
+        /// <summary>
+        /// Metodo para el calculo del la utilidad teniendo el precio y el costo
+        /// </summary>   
         private double calculoUtilidad(double costo, double precio)
         {
                double result = precio - costo;            

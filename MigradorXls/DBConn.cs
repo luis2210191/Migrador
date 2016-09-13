@@ -15,6 +15,9 @@ namespace MigradorXls
         private LiteDatabase _conn;
         private static string dbName = "Colleccion.db";
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         private DBConn()
         {
 
@@ -56,6 +59,9 @@ namespace MigradorXls
             }
         }
 
+        /// <summary>
+        /// Metodo que asigna la coleccion a consultar en objeto colleccion.db
+        /// </summary>
         public LiteCollection<T> Collection<T>() where T : new()
         {
             var name = typeof(T).Name; // Nombre de la clase

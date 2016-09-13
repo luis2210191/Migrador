@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace MigradorXls
 {
+    //Clase de variables globales
     public class Globals
     {
         public static String usuario = "";
         public static String pass = "";
         public static int port = 5432;
-        public static String Host = "192.168.1.253";
+        public static String Host = "192.168.1.254";
         public static String DB = "INNOVA_MIGRAR";
         public static String org = "";
         public static String userid = "";

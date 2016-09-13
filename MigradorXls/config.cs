@@ -14,6 +14,9 @@ namespace MigradorXls
     {
         int count;
         Config con = new Config();
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public config()
         {
             InitializeComponent();
@@ -25,12 +28,17 @@ namespace MigradorXls
                 textBox1.Text = col.Find(x => x.id == count).FirstOrDefault().descServSaint;
                 textBox2.Text = col.Find(x => x.id == count).FirstOrDefault().BDSaint;
                 textBox3.Text = col.Find(x => x.id == count).FirstOrDefault().nombConexA2;
-            }catch{
+            }
+            catch
+            {
 
             }
-           
+
         }
 
+        /// <summary>
+        /// Evento click del boton para guardar la configuracion
+        /// </summary>
         private void button1_Click(object sender, EventArgs e)
         {
             try
@@ -45,11 +53,11 @@ namespace MigradorXls
                 col.Insert(con);
                 MessageBox.Show("Informacion guardada con exito", "Atencion", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            catch(Exception)
+            catch (Exception)
             {
-                MessageBox.Show("Hubo un error al tratar de guardar la configuracion","Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Hubo un error al tratar de guardar la configuracion", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            
+
         }
     }
     public class Config
@@ -59,10 +67,16 @@ namespace MigradorXls
         public string nombConexA2 { get; set;}
         public int id { get; set;}
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public Config()
         {
 
         }
+        /// <summary>
+        /// Sobrecarga del constructor
+        /// </summary>
         public Config(string ServSaint, string bdSaint, string ConexA2, int Id)
         {
             this.descServSaint = ServSaint;

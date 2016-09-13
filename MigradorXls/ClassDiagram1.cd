@@ -1,2 +1,208 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ClassDiagram /> 
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
+  <Class Name="MigradorXls.Ajustes">
+    <Position X="26.25" Y="0.5" Width="5.5" />
+    <TypeIdentifier>
+      <HashCode>ACQBACAQoCAgABGwhoCAPUACCAg4AUAQEHAABREAhEI=</HashCode>
+      <FileName>Ajustes.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.config">
+    <Position X="32.5" Y="0.5" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAACAAABAABACAAQBCAAAYAQAAEGEAAAAABAA=</HashCode>
+      <FileName>config.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.Config">
+    <Position X="12.5" Y="6.5" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAEAAAAAIAAAAAAAAAAAAAAEAAAgA=</HashCode>
+      <FileName>config.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.DataConvert">
+    <Position X="5.25" Y="0.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAAIAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>DataConvert.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.Extension">
+    <Position X="1.75" Y="2.75" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAACAAAAAAgAAAAAAAAAAAAAA=</HashCode>
+      <FileName>DataConvert.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.DBConn" BaseTypeListCollapsed="true">
+    <Position X="17.75" Y="5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAABCAAQAEAAAAAAAAAAAAAAAAAQAACEAAAAAA=</HashCode>
+      <FileName>DBConn.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MigradorXls.DBConnection">
+    <Position X="17.25" Y="0.5" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAACAAABAAAACAAAACAAAIAAAAEEAAAQAAAAA=</HashCode>
+      <FileName>DBConnection.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.DelphiBinUtils">
+    <Position X="21.75" Y="0.5" Width="4" />
+    <NestedTypes>
+      <Struct Name="MigradorXls.DelphiBinUtils.RegCostos" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>DelphiBinUtils.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+      <Struct Name="MigradorXls.DelphiBinUtils.RegUnPrecio" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>DelphiBinUtils.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAIAAAAAIAAAAAAAAAAACAAAAAAAAAA=</HashCode>
+      <FileName>DelphiBinUtils.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.Globals">
+    <Position X="8.75" Y="2.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAACAAAAAEAAAAAAAAACAACAwIAAAQAEAAABA=</HashCode>
+      <FileName>Globals.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.Login">
+    <Position X="13" Y="0.5" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>gSAIAAAAACAAABAAAACAAQACAAAYAAABEGAAAQAAAAA=</HashCode>
+      <FileName>Login.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.Main">
+    <Position X="36.5" Y="0.5" Width="7.25" />
+    <TypeIdentifier>
+      <HashCode>ACVCAAgAACElC1gQDh6gQNECQQm4QQQCXHdgIQYQgEY=</HashCode>
+      <FileName>Main.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.Tipos">
+    <Position X="9.75" Y="9.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAABBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Main.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.admin">
+    <Position X="1.75" Y="0.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAA=</HashCode>
+      <FileName>Main.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.adminA2">
+    <Position X="10" Y="0.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAA=</HashCode>
+      <FileName>Main.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.adminSaint">
+    <Position X="21" Y="3" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAA=</HashCode>
+      <FileName>Main.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.payroll">
+    <Position X="1.75" Y="4.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAgA=</HashCode>
+      <FileName>Main.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.Errores">
+    <Position X="32.75" Y="6" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAA=</HashCode>
+      <FileName>Main.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.BD">
+    <Position X="23.75" Y="3" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAgA=</HashCode>
+      <FileName>Main.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.Menu">
+    <Position X="22.25" Y="5.75" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAABAAAACAAAACAMA4AAAAAGAMAQAAAAA=</HashCode>
+      <FileName>Menu.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.MigracionBD">
+    <Position X="44.5" Y="0.5" Width="6.75" />
+    <TypeIdentifier>
+      <HashCode>AZhOSAAAACEJjxgaBCKAAHJSilq5UQyIxPXJgYkogiY=</HashCode>
+      <FileName>MigracionBD.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.PorcUtil">
+    <Position X="5" Y="2.25" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>CCAAAAAAACAAABAAAACAAABCIAAYAAAAEEAAAAAAAAA=</HashCode>
+      <FileName>PorcUtil.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.Program">
+    <Position X="11" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.TypeOperation">
+    <Position X="9.5" Y="7" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAEAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAQ=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.Prueba">
+    <Position X="18" Y="9.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAAAACAAAAAAAACAAAACAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Prueba.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.Transacciones">
+    <Position X="3.25" Y="7.25" Width="5.25" />
+    <TypeIdentifier>
+      <HashCode>MCAgAAAAACAgABgQhACgQEECABgYAQAABGAAIQIAAAA=</HashCode>
+      <FileName>Transacciones.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.Properties.Resources">
+    <Position X="22.25" Y="11.75" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>QAAAACgIIAAEJQEEAAABOACAAaIEQAIgAAAAAAAAgIA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MigradorXls.Properties.Settings">
+    <Position X="33.25" Y="8.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAIAAAAAABAAAAAAAAAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="System.Object">
+    <Position X="14.5" Y="12.75" Width="3.25" />
+    <TypeIdentifier />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

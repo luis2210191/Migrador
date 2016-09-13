@@ -32,9 +32,12 @@ namespace MigradorXls
         }
 
 
+        /// <summary>
+        /// Evento click del boton de inicio de sesion
+        /// </summary>
         private void button1_Click(object sender, EventArgs e)
         {
-            if(textBox1.Text !="" && textBox2.Text != "")
+            if (textBox1.Text != "" && textBox2.Text != "")
             {
                 try
                 {
@@ -71,15 +74,18 @@ namespace MigradorXls
                 {
                     MessageBox.Show("No hay conexion valida a la base de datos");
                 }
-                
+
             }
 
         }
 
+        /// <summary>
+        /// Metodo de encriptacion privado
+        /// </summary>
         private static string xorMsg(string Msg)
         {
             try
-            { 
+            {
                 string Key = "Inn0v4RlZ";
                 char[] keys = Key.ToCharArray();
                 char[] msg = Msg.ToCharArray();
@@ -95,31 +101,43 @@ namespace MigradorXls
                 msg = null; keys = null;
                 return new String(newmsg);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return null;
             }
         }
+        /// <summary>
+        /// Metodo que encripta con base 64 bits
+        /// </summary>
         public static string Base64Encode(string plainText)
         {
             var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
             return System.Convert.ToBase64String(plainTextBytes);
         }
+        /// <summary>
+        /// Metodo que desencripta con base 64 bits
+        /// </summary>
         public static string Base64Decode(string base64EncodedData)
         {
             var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
             return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
         }
 
+        /// <summary>
+        /// Evento click del boton de configuracion de BD
+        /// </summary>
         private void button2_Click(object sender, EventArgs e)
         {
             DBConnection conn = new DBConnection();
             conn.ShowDialog();
         }
 
+        /// <summary>
+        /// Evento de presion de tecla para la creacion de un shortcut para la configuracion de la BD
+        /// </summary>
         private void Login_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Control && e.KeyCode == Keys.B)
+            if (e.Control && e.KeyCode == Keys.B)
             {
                 DBConnection conn = new DBConnection();
                 conn.ShowDialog();
